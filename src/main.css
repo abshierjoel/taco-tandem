@@ -5,22 +5,128 @@
   More context in the issue:
     https://github.com/halfzebra/create-elm-app/issues/320
 */
-[data-elm-hot="true"] {
+
+[data-elm-hot='true'] {
   height: inherit;
 }
 
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
 body {
-  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande', 'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+  background: #322885;
+
   margin: 0;
   text-align: center;
-  color: #293c4b;
+
+  font-family: 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
+    'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+
+  color: #414141;
+}
+
+@font-face {
+  font-family: 'Aliseo';
+  src: url('ALISEO-NonCommercial.otf');
 }
 
 h1 {
-  font-size: 30px;
+  font-size: 3rem;
+  margin: unset;
+  color: #414141;
+
+  font-family: 'Aliseo', 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
+    'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
 
 img {
   margin: 20px 0;
   max-width: 200px;
+}
+
+div {
+}
+
+.wrapper {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.header {
+  background: #aecf80;
+  padding: 2rem auto;
+}
+
+.header-icon {
+}
+
+.header-text {
+  color: #fff;
+  text-align: left;
+  font-size: 9rem;
+  text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.07);
+
+  font-family: 'Aliseo', 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
+    'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+}
+
+.header-nav {
+  display: flex;
+  background: #e0485d;
+}
+
+.nav-button {
+  flex-grow: 1;
+  line-height: 5rem;
+  font-size: 2rem;
+  border: unset;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.nav-button:hover {
+  background: #ec7585;
+}
+
+.page {
+  width: 100%;
+  max-width: 60%;
+  min-height: 800px;
+
+  margin: 80px auto;
+  padding: 4rem 4rem;
+
+  border-radius: 36px;
+  background: #fff;
+
+  text-align: left;
+}
+
+.post {
+  color: #222;
+}
+
+.post-author {
+  color: #777;
+}
+
+.post-body {
+  font-size: 1.1rem;
+  line-height: 2rem;
+  text-indent: 4rem;
+  color: #555;
+}
+
+.post-about {
+  border-top: 4px dashed #ccc;
+  margin-top: 4rem;
+  padding: 2rem 0;
 }
