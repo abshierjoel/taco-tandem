@@ -39,7 +39,7 @@ body {
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: 5vh;
   margin: unset;
   color: #414141;
 
@@ -62,12 +62,18 @@ p {
 .header-logo {
   max-width: 60%;
   margin: 0 auto;
-  padding: 2rem 0;
+  padding: 2vh 0;
   display: flex;
 }
 
+@media screen and (max-width: 768px) {
+  .header-logo {
+    max-width: 90%;
+  }
+}
+
 .header-icon {
-  flex: 1;
+  flex: 33%;
 }
 
 .header-icon img {
@@ -75,16 +81,25 @@ p {
 }
 
 .header-text {
-  flex: 2;
+  flex: 67%;
+  padding-top: 2rem;
 
   text-align: left;
-  font-size: 10rem;
-  line-height: 10rem;
+  font-size: 10vw;
+  line-height: 8vw;
   color: #fff;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.07);
 
   font-family: 'Aliseo', 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
+}
+
+@media screen and (max-width: 768px) {
+  .header-text {
+    padding-top: unset;
+    font-size: 14vw;
+    line-height: 14vw;
+  }
 }
 
 .header-text > span {
@@ -121,8 +136,8 @@ p {
   max-width: 60%;
   min-height: 800px;
 
-  margin: 80px auto;
-  padding: 4rem 4rem;
+  margin: 3vw auto;
+  padding: 4vh 4vh;
 
   border-radius: 36px;
   background: #fff;
@@ -130,6 +145,12 @@ p {
   box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
 
   text-align: left;
+}
+
+@media screen and (max-width: 768px) {
+  .page {
+    max-width: 95%;
+  }
 }
 
 .post {
