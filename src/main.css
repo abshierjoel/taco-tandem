@@ -22,6 +22,7 @@ html {
 
 body {
   background: #322885;
+  background-image: url('../public/img/bg.png');
 
   margin: 0;
   text-align: center;
