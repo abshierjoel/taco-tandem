@@ -119,8 +119,8 @@ p {
 
 .nav-button {
   flex-grow: 1;
-  line-height: 5rem;
-  font-size: 2rem;
+  line-height: 5vh;
+  font-size: 2vh;
   border: unset;
   background: transparent;
   color: #fff;

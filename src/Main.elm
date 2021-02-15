@@ -1,6 +1,9 @@
 module Main exposing (..)
 
 import Browser
+import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Solid as Icon
+import FontAwesome.Styles as Icon
 import Html exposing (Html, button, div, h1, img, p, span, text)
 import Html.Attributes exposing (class, src, style, width)
 
@@ -19,17 +22,24 @@ main =
         }
 
 
+init : ( Model, Cmd Msg )
+init =
+    ( initialModel, Cmd.none )
+
+
+initialModel : Model
+initialModel =
+    { showDropDown = True
+    }
+
+
 
 ---- MODEL ----
 
 
 type alias Model =
-    {}
-
-
-init : ( Model, Cmd Msg )
-init =
-    ( {}, Cmd.none )
+    { showDropDown : Bool
+    }
 
 
 
@@ -63,7 +73,11 @@ view model =
                 ]
             , div [ class "nav-wrapper" ]
                 [ div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
-                    [ button [ class "nav-button" ] [ text "Home" ]
+                    [ button [ class "navigation-toggle nav-button" ]
+                        [ text "Menu"
+                        , Icon.viewStyled [] Icon.bars
+                        ]
+                    , button [ class "nav-button" ] [ text "Home" ]
                     , button [ class "nav-button" ] [ text "Travel" ]
                     , button [ class "nav-button" ] [ text "Recipes" ]
                     , button [ class "nav-button" ] [ text "About" ]
