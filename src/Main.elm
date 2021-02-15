@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Html exposing (Html, button, div, h1, img, p, span, text)
-import Html.Attributes exposing (class, src)
+import Html.Attributes exposing (class, src, style, width)
 
 
 
@@ -53,13 +53,21 @@ view : Model -> Html Msg
 view model =
     div [ class "wrapper" ]
         [ div [ class "header" ]
-            [ div [ class "header-text" ] [ text " Taco" ]
-            , div [ class "header-text" ] [ text "Tandem" ]
-            , div [ class "header-nav" ]
-                [ button [ class "nav-button" ] [ text "Home" ]
-                , button [ class "nav-button" ] [ text "Travel" ]
-                , button [ class "nav-button" ] [ text "Recipes" ]
-                , button [ class "nav-button" ] [ text "About" ]
+            [ div [ class "header-logo" ]
+                [ div [ class "header-icon" ]
+                    [ img [ src "./taco.svg" ] [] ]
+                , div [ class "header-text" ]
+                    [ span [] [ text " Taco" ]
+                    , span [] [ text "Tandem." ]
+                    ]
+                ]
+            , div [ class "nav-wrapper" ]
+                [ div [ class "header-nav" ]
+                    [ button [ class "nav-button" ] [ text "Home" ]
+                    , button [ class "nav-button" ] [ text "Travel" ]
+                    , button [ class "nav-button" ] [ text "Recipes" ]
+                    , button [ class "nav-button" ] [ text "About" ]
+                    ]
                 ]
             ]
         , div [ class "page" ]

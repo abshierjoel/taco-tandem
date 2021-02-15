@@ -46,14 +46,6 @@ h1 {
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
 
-img {
-  margin: 20px 0;
-  max-width: 200px;
-}
-
-div {
-}
-
 .wrapper {
   width: 100%;
   margin: 0 auto;
@@ -61,25 +53,49 @@ div {
 
 .header {
   background: #aecf80;
-  padding: 2rem auto;
+}
+
+.header-logo {
+  max-width: 60%;
+  margin: 0 auto;
+  padding: 2rem 0;
+  display: flex;
 }
 
 .header-icon {
+  flex: 1;
+}
+
+.header-icon img {
+  width: 100%;
 }
 
 .header-text {
-  color: #fff;
+  flex: 2;
+
   text-align: left;
-  font-size: 9rem;
+  font-size: 10rem;
+  line-height: 10rem;
+  color: #fff;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.07);
 
   font-family: 'Aliseo', 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
 
+.header-text > span {
+  display: block;
+}
+
+.nav-wrapper {
+  background: #e0485d;
+}
+
 .header-nav {
   display: flex;
-  background: #e0485d;
+  width: 100%;
+  max-width: 60%;
+  margin: 0 auto;
 }
 
 .nav-button {
