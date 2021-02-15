@@ -1,11 +1,12 @@
 module Main exposing (..)
 
-import Browser
+import Browser exposing (element)
 import FontAwesome.Icon as Icon exposing (Icon)
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
-import Html exposing (Html, button, div, h1, img, p, span, text)
+import Html exposing (Html, button, div, h1, img, menuitem, p, span, text)
 import Html.Attributes exposing (class, src, style, width)
+import Html.Events exposing (onClick)
 
 
 
@@ -29,7 +30,7 @@ init =
 
 initialModel : Model
 initialModel =
-    { showDropDown = True
+    { showDropDown = False
     }
 
 
@@ -47,12 +48,14 @@ type alias Model =
 
 
 type Msg
-    = NoOp
+    = ClickedMenuButton
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        ClickedMenuButton ->
+            ( { model | showDropDown = not model.showDropDown }, Cmd.none )
 
 
 
@@ -61,8 +64,17 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    let
+        menuItems =
+            [ button [ class "nav-button" ] [ text "Home" ]
+            , button [ class "nav-button" ] [ text "Travel" ]
+            , button [ class "nav-button" ] [ text "Recipes" ]
+            , button [ class "nav-button" ] [ text "About" ]
+            ]
+    in
     div [ class "wrapper" ]
-        [ div [ class "header" ]
+        [ Icon.css
+        , div [ class "header" ]
             [ div [ class "header-logo animate__animated animate__zoomIn " ]
                 [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
                     [ img [ src "./taco.svg" ] [] ]
@@ -73,14 +85,11 @@ view model =
                 ]
             , div [ class "nav-wrapper" ]
                 [ div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
-                    [ button [ class "navigation-toggle nav-button" ]
-                        [ text "Menu"
-                        , Icon.viewStyled [] Icon.bars
+                    [ button [ class "navigation-toggle nav-button", onClick ClickedMenuButton ]
+                        [ Icon.viewStyled [] Icon.bars
+                        , viewIf (not model.showDropDown) (text " Menu")
                         ]
-                    , button [ class "nav-button" ] [ text "Home" ]
-                    , button [ class "nav-button" ] [ text "Travel" ]
-                    , button [ class "nav-button" ] [ text "Recipes" ]
-                    , button [ class "nav-button" ] [ text "About" ]
+                    , viewIf model.showDropDown (div [] menuItems)
                     ]
                 ]
             ]
@@ -104,3 +113,12 @@ view model =
                 ]
             ]
         ]
+
+
+viewIf : Bool -> Html Msg -> Html Msg
+viewIf condition element =
+    if condition then
+        element
+
+    else
+        text ""
