@@ -46,6 +46,9 @@ h1 {
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
 
+p {
+}
+
 .wrapper {
   width: 100%;
   margin: 0 auto;
@@ -142,7 +145,57 @@ h1 {
 }
 
 .post-about {
+  display: flex;
   border-top: 4px dashed #ccc;
   margin-top: 4rem;
   padding: 2rem 0;
+}
+
+.about-image {
+  flex: 1;
+}
+
+.about-image img {
+  width: 100%;
+  border: 0.6rem solid #333;
+}
+
+.about-text {
+  flex: 3;
+  margin-left: 1rem;
+}
+
+.about-text > span {
+  display: block;
+}
+
+.about-text > p {
+  text-indent: 2rem;
+}
+
+.text-bold {
+  font-weight: bold;
+}
+.text-italic {
+  font-style: italic;
+}
+
+.text-light {
+  color: #777;
+}
+
+.text-large {
+  font-size: 1.2rem;
+}
+
+.stack-s {
+  margin-bottom: 6px;
+}
+
+.stack-m {
+  margin-bottom: 12px;
+}
+
+.stack-l {
+  margin-bottom: 24px;
 }
