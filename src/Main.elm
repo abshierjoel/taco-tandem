@@ -4,9 +4,22 @@ import Browser exposing (element)
 import FontAwesome.Icon as Icon exposing (Icon)
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
+import Graphql.Http
+import Graphql.Operation exposing (RootQuery)
+import Graphql.OptionalArgument exposing (OptionalArgument(..))
+import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Html exposing (Html, button, div, h1, img, menuitem, p, span, text)
 import Html.Attributes exposing (class, src, style, width)
 import Html.Events exposing (onClick)
+import Json.Decode exposing (Error(..))
+import RemoteData exposing (RemoteData)
+import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
+import Taco.Object
+import Taco.Object.Post as Post
+import Taco.Object.RootQueryToPostConnection
+import Taco.Object.User as User
+import Taco.Query as Query
+import Taco.Scalar exposing (Id)
 
 
 
@@ -25,12 +38,13 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, Cmd.none )
+    ( initialModel, getPosts )
 
 
 initialModel : Model
 initialModel =
     { showDropDown = False
+    , response = RemoteData.Loading
     }
 
 
@@ -40,6 +54,7 @@ initialModel =
 
 type alias Model =
     { showDropDown : Bool
+    , response : RemoteData (Graphql.Http.Error Response) Response
     }
 
 
@@ -50,6 +65,7 @@ type alias Model =
 type Msg
     = ClickedMenuButton
     | ClickedCloseMenuButton
+    | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -61,6 +77,113 @@ update msg model =
         ClickedCloseMenuButton ->
             ( { model | showDropDown = False }, Cmd.none )
 
+        GotResponse response ->
+            ( { model | response = response }, Cmd.none )
+
+
+
+---- QUERY ----
+
+
+type alias Response =
+    Maybe (List Post)
+
+
+getPosts : Cmd Msg
+getPosts =
+    postsQuery
+        |> Graphql.Http.queryRequest "http://localhost/graphql"
+        |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
+
+
+
+-- getUser : Cmd Msg
+-- getUser =
+--     query
+--         |> Graphql.Http.queryRequest "http://localhost/graphql"
+--         |> Graphql.Http.send (RemoteData.fromResult >> GotUser)
+-- type alias User =
+--     { firstName : Maybe String
+--     , lastName : Maybe String
+--     , username : Maybe String
+--     }
+-- type alias Users =
+--     { edges : List User
+--     }
+-- query : SelectionSet Response RootQuery
+-- query =
+--     Query.user getOptArgs getReqArgs userSelection
+-- getOptArgs : Query.UserOptionalArguments -> Query.UserOptionalArguments
+-- getOptArgs args =
+--     { idType = Null }
+-- getReqArgs : Query.UserRequiredArguments
+-- getReqArgs =
+--     { id = getId }
+-- getId : Id
+-- getId =
+--     Taco.Scalar.Id "dXNlcjox"
+-- userSelection : SelectionSet User Taco.Object.User
+-- userSelection =
+--     SelectionSet.map3 User
+--         User.firstName
+--         User.lastName
+--         User.username
+
+
+type alias Posts =
+    Maybe (List Post)
+
+
+type alias Post =
+    { date : Maybe String
+    , commentCount : Maybe Int
+    , uri : String
+    , title : Maybe String
+    , content : Maybe String
+    }
+
+
+postsQuery : SelectionSet (Maybe (List Post)) RootQuery
+postsQuery =
+    Query.posts getPostsOptArgs postsSelection
+
+
+getPostsOptArgs : Query.PostsOptionalArguments -> Query.PostsOptionalArguments
+getPostsOptArgs args =
+    { first = Null
+    , last = Null
+    , after = Null
+    , before = Null
+    , where_ = Null
+    }
+
+
+postsSelection : SelectionSet (List Post) Taco.Object.RootQueryToPostConnection
+postsSelection =
+    Taco.Object.RootQueryToPostConnection.nodes postSelection
+        |> nonNullOrFail
+        |> nonNullElementsOrFail
+
+
+postSelection : SelectionSet Post Taco.Object.Post
+postSelection =
+    SelectionSet.map5 Post
+        Post.date
+        Post.commentCount
+        Post.uri
+        (Post.title postTitleArgs)
+        (Post.content postContentArgs)
+
+
+postTitleArgs : Post.TitleOptionalArguments -> Post.TitleOptionalArguments
+postTitleArgs args =
+    { format = Graphql.OptionalArgument.Null }
+
+
+postContentArgs : Post.ContentOptionalArguments -> Post.ContentOptionalArguments
+postContentArgs args =
+    { format = Graphql.OptionalArgument.Null }
+
 
 
 ---- VIEW ----
@@ -69,6 +192,29 @@ update msg model =
 view : Model -> Html Msg
 view model =
     let
+        postList =
+            case model.response of
+                RemoteData.Success result ->
+                    let
+                        list =
+                            case result of
+                                Just res ->
+                                    res
+
+                                Nothing ->
+                                    []
+                    in
+                    List.map viewPost list
+
+                RemoteData.Failure _ ->
+                    [ text "Failed to load blog posts" ]
+
+                RemoteData.Loading ->
+                    [ text "Loading Posts" ]
+
+                RemoteData.NotAsked ->
+                    [ text "Loading Posts" ]
+
         menuItems =
             div [ class "nav-dropdown" ]
                 [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
@@ -106,23 +252,46 @@ view model =
                     ]
                 ]
             ]
-        , div [ class "page animate__animated animate__backInUp" ]
-            [ h1 [] [ text "Tacos are Tasty" ]
-            , span [ class "post-author" ] [ text "By Elizabeth Hale on 02/21/2021" ]
-            , div [ class "post-body" ]
-                [ p [] [ text "Greetings, and thanks so much for visiting this website! This is the first time that you have seen my blog - we've had many visitors over the years and these days every day it's always some exciting new recipe or restaurant which brings me out in front towards all those food lovers from everywhere who are keen on starting their own cooking tradition within our community! Since 2005 when I started making 'chili' burritos using nothing more than avocado, guacamole etc., then there has been quite an amazing expansion/expansion into other cuisines besides chili (pico de gallo + black beans & rice)." ]
-                , p [] [ text "I like tacos carne asada. I like to eat tacos with a lot of lime juice. One morning, when we were looking at different items I like tacos carne asada. I like to eat tacos with a lot of lime juice. One morning, when we were looking at different items on our menu, one had chicken and it reminded me so much that's what my friends do sometimes because they love the flavor but also can't figure out why this dish is called taco al pastor since there are no words for its name or how come all meat dishes in Mexico has something pronounced taowtejo (my daughter calls them Taco Peppers). We have an entire recipe book dedicated full stop just about making everything from Mexican food taste exactly like Tex-Mex style! My kids will go crazy over those recipes – not only may their mom buy more stuff she loves - including cilantr on our menu, one had chicken and it reminded me so much that's what my friends do sometimes because they love the flavor but also can't figure out why this dish is called taco al pastor since there are no words for its name or how come all meat dishes in Mexico has something pronounced taowtejo (my daughter calls them Taco Peppers)." ]
-                , p [] [ text "We have an entire recipe book dedicated full stop just about making everything from Mexican food taste exactly like Tex-Mex style! My kids will go crazy over those recipes – not only may their mom buy more stuff she loves - including cilantro." ]
-                ]
-            , div [ class "post-about" ]
-                [ div [ class "about-image" ]
-                    [ img [ src "./elizabeth.jpg" ] [] ]
-                , div [ class "about-text" ]
-                    [ span [ class "text-bold text-large stack-m" ] [ text "Elizabeth Hale" ]
-                    , span [ class "text-italic text-light stack-s" ] [ text "Taco Consumer, Part-time Genius, Taco Developer, Author" ]
-                    , p [ class "" ] [ text "She seems to have the same skills as you.\" Now I know that by studying, they mean math where no one can actually do it well or accurately and if there are any mistakes made—no matter how simple of an error could cause someone harm; when some student has done horrible things in class just because he wants to get into college…it would be unthinkable for them not only academically but emotionally too,\"" ]
-                    , p [ class "" ] [ text "The teacher said with certainty and assurance. It's true: every person studied did terrible things during his early childhood including bad behavior on homework (not counting all those nights hanging out at recess), beating up your parents over trivial questions" ]
-                    ]
+        , div [ class "page animate__animated animate__backInUp" ] postList
+        ]
+
+
+justOrEmpty : Maybe String -> String
+justOrEmpty maybe =
+    case maybe of
+        Just res ->
+            res
+
+        Nothing ->
+            ""
+
+
+viewPost : Post -> Html Msg
+viewPost post =
+    let
+        title =
+            justOrEmpty post.title
+
+        date =
+            justOrEmpty post.date
+
+        content =
+            justOrEmpty post.content
+    in
+    div [ class "post" ]
+        [ h1 [] [ text title ]
+        , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ date ]
+        , div [ class "post-body" ]
+            [ p [] [ text content ]
+            ]
+        , div [ class "post-about" ]
+            [ div [ class "about-image" ]
+                [ img [ src "./elizabeth.jpg" ] [] ]
+            , div [ class "about-text" ]
+                [ span [ class "text-bold text-large stack-m" ] [ text "Elizabeth Hale" ]
+                , span [ class "text-italic text-light stack-s" ] [ text "Taco Consumer, Part-time Genius, Taco Developer, Author" ]
+                , p [ class "" ] [ text "She seems to have the same skills as you.\" Now I know that by studying, they mean math where no one can actually do it well or accurately and if there are any mistakes made—no matter how simple of an error could cause someone harm; when some student has done horrible things in class just because he wants to get into college…it would be unthinkable for them not only academically but emotionally too,\"" ]
+                , p [ class "" ] [ text "The teacher said with certainty and assurance. It's true: every person studied did terrible things during his early childhood including bad behavior on homework (not counting all those nights hanging out at recess), beating up your parents over trivial questions" ]
                 ]
             ]
         ]
