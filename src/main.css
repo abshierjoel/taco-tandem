@@ -1,10 +1,4 @@
-/*
-  elm-hot creates an additional div wrapper around the app to make HMR possible.
-  This could break styling in development mode if you are using Elm UI.
-
-  More context in the issue:
-    https://github.com/halfzebra/create-elm-app/issues/320
-*/
+@import './css/disableAnimate.css';
 
 [data-elm-hot='true'] {
   height: inherit;
@@ -23,6 +17,7 @@ html {
 body {
   background: #322885;
   background-image: url('../public/img/bg.png');
+  background-size: 25vh 25vh;
 
   margin: 0;
   text-align: center;
@@ -57,6 +52,14 @@ p {
 
 .header {
   background: #aecf80;
+  position: relative;
+  z-index: 1000;
+}
+
+@media screen and (max-width: 768px) {
+  .header {
+    background: transparent;
+  }
 }
 
 .header-logo {
@@ -110,36 +113,86 @@ p {
   background: #e0485d;
 }
 
-.header-nav {
+.header-nav,
+.mobile-header-nav {
   display: flex;
   width: 100%;
   max-width: 60%;
   margin: 0 auto;
 }
 
-.nav-button {
+.mobile-header-nav {
+  display: none;
+}
+
+@media screen and (max-width: 768px) {
+  .mobile-header-nav {
+    display: inline-block;
+  }
+  .header-nav {
+    display: none;
+  }
+}
+
+.nav-button,
+.menu-button {
   flex-grow: 1;
   line-height: 5vh;
   font-size: 2vh;
   border: unset;
+  border-width: 0;
   background: transparent;
   color: #fff;
   cursor: pointer;
+}
+
+.nav-button svg {
+  margin-right: 12px;
+}
+
+.menu-button {
+  font-size: 3vh;
+  line-height: 8vh;
 }
 
 .nav-button:hover {
   background: #ec7585;
 }
 
+@media screen and (max-width: 768px) {
+  .header-nav {
+    flex-direction: column;
+    max-width: unset;
+  }
+
+  .nav-button {
+    width: 100%;
+    padding-left: 10vw;
+    font-size: 3vh;
+    text-align: left;
+    line-height: 8vh;
+    display: block;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.nav-dropdown {
+  position: absolute;
+  width: 100%;
+  background: #af3646;
+}
+
 .page {
   width: 100%;
   max-width: 60%;
   min-height: 800px;
+  z-index: 100;
+  position: relative;
 
-  margin: 3vw auto;
-  padding: 4vh 4vh;
+  margin: 3vh auto;
+  padding: 4vh 6vw;
 
-  border-radius: 36px;
+  border-radius: 4vw;
   background: #fff;
   -webkit-box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
   box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
@@ -149,7 +202,9 @@ p {
 
 @media screen and (max-width: 768px) {
   .page {
-    max-width: 95%;
+    max-width: 100%;
+    margin-top: unset;
+    border-radius: 0;
   }
 }
 
@@ -164,7 +219,8 @@ p {
 .post-body {
   font-size: 1.1rem;
   line-height: 2rem;
-  text-indent: 4rem;
+  text-indent: 2rem;
+  text-align: justify;
   color: #555;
 }
 

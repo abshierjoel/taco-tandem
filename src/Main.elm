@@ -49,6 +49,7 @@ type alias Model =
 
 type Msg
     = ClickedMenuButton
+    | ClickedCloseMenuButton
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -56,6 +57,9 @@ update msg model =
     case msg of
         ClickedMenuButton ->
             ( { model | showDropDown = not model.showDropDown }, Cmd.none )
+
+        ClickedCloseMenuButton ->
+            ( { model | showDropDown = False }, Cmd.none )
 
 
 
@@ -66,11 +70,14 @@ view : Model -> Html Msg
 view model =
     let
         menuItems =
-            [ button [ class "nav-button" ] [ text "Home" ]
-            , button [ class "nav-button" ] [ text "Travel" ]
-            , button [ class "nav-button" ] [ text "Recipes" ]
-            , button [ class "nav-button" ] [ text "About" ]
-            ]
+            div [ class "nav-dropdown" ]
+                [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
+                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
+                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
+                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
+                , button [ class "nav-button", onClick ClickedCloseMenuButton ]
+                    [ Icon.viewStyled [] Icon.times, text "Close" ]
+                ]
     in
     div [ class "wrapper" ]
         [ Icon.css
@@ -80,16 +87,22 @@ view model =
                     [ img [ src "./taco.svg" ] [] ]
                 , div [ class "header-text" ]
                     [ span [] [ text " Taco" ]
-                    , span [] [ text "Tandem." ]
+                    , span [] [ text "Tandem" ]
                     ]
                 ]
             , div [ class "nav-wrapper" ]
-                [ div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
-                    [ button [ class "navigation-toggle nav-button", onClick ClickedMenuButton ]
+                [ div [ class "mobile-header-nav header-icon animate__animated animate__backInLeft" ]
+                    [ button [ class "menu-button", onClick ClickedMenuButton ]
                         [ Icon.viewStyled [] Icon.bars
-                        , viewIf (not model.showDropDown) (text " Menu")
+                        , text " Menu"
                         ]
-                    , viewIf model.showDropDown (div [] menuItems)
+                    ]
+                , viewIf model.showDropDown menuItems
+                , div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
+                    [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
+                    , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
+                    , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
+                    , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
                     ]
                 ]
             ]
