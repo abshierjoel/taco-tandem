@@ -1,0 +1,24 @@
+query LatestPosts {
+  posts {
+    nodes {
+      commentCount
+      date
+      slug
+      uri
+      link
+      author {
+        node {
+          url
+          firstName
+          lastName
+        }
+      }
+      title
+      preview {
+        node {
+          content
+        }
+      }
+    }
+  }
+}

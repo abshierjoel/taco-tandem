@@ -1,6 +1,7 @@
 import './main.css';
 import '../node_modules/animate.css';
 import { Elm } from './Main.elm';
+import 'animate.css';
 import * as serviceWorker from './serviceWorker';
 
 Elm.Main.init({
