@@ -219,9 +219,16 @@ p {
 .post-body {
   font-size: 1.1rem;
   line-height: 2rem;
-  text-indent: 2rem;
   text-align: justify;
   color: #555;
+}
+
+.post-body p {
+  text-indent: 2rem;
+}
+
+.post-body img {
+  max-width: 100%;
 }
 
 .post-about {

@@ -11,6 +11,8 @@ import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullEleme
 import Html exposing (Html, button, div, h1, img, menuitem, p, span, text)
 import Html.Attributes exposing (class, src, style, width)
 import Html.Events exposing (onClick)
+import Html.Parser exposing (Node)
+import Html.Parser.Util
 import Json.Decode exposing (Error(..))
 import RemoteData exposing (RemoteData)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
@@ -182,7 +184,7 @@ postTitleArgs args =
 
 postContentArgs : Post.ContentOptionalArguments -> Post.ContentOptionalArguments
 postContentArgs args =
-    { format = Graphql.OptionalArgument.Null }
+    { format = Graphql.OptionalArgument.Present Taco.Enum.PostObjectFieldFormatEnum.Rendered }
 
 
 
@@ -266,6 +268,16 @@ justOrEmpty maybe =
             ""
 
 
+getParsedHtml : String -> List Node
+getParsedHtml html =
+    case Html.Parser.run html of
+        Ok tree ->
+            tree
+
+        _ ->
+            []
+
+
 viewPost : Post -> Html Msg
 viewPost post =
     let
@@ -282,8 +294,7 @@ viewPost post =
         [ h1 [] [ text title ]
         , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ date ]
         , div [ class "post-body" ]
-            [ p [] [ text content ]
-            ]
+            (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         , div [ class "post-about" ]
             [ div [ class "about-image" ]
                 [ img [ src "./elizabeth.jpg" ] [] ]
