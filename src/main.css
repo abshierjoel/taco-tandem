@@ -34,10 +34,8 @@ body {
 }
 
 h1 {
-  font-size: 5vh;
   margin: unset;
   color: #414141;
-
   font-family: 'Aliseo', 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
@@ -190,9 +188,9 @@ p {
   position: relative;
 
   margin: 3vh auto;
-  padding: 4vh 6vw;
+  padding: 6vh 6vw;
 
-  border-radius: 4vw;
+  border-radius: 3vw;
   background: #fff;
   -webkit-box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
   box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
@@ -210,6 +208,14 @@ p {
 
 .post {
   color: #222;
+  margin-bottom: 160px;
+}
+
+.post-title {
+  font-size: 5vh;
+  line-height: 6vh;
+  margin: unset;
+  margin-bottom: 20px;
 }
 
 .post-author {
@@ -285,4 +291,26 @@ p {
 
 .stack-l {
   margin-bottom: 24px;
+}
+
+.load-more {
+  width: 100%;
+  margin-top: 60px;
+  border: none;
+
+  border-radius: 4vw;
+  background: #e0485d;
+  color: white;
+  -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
+
+  font-size: 2vw;
+  line-height: 4vw;
+  text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.1);
+
+  cursor: pointer;
+}
+
+.load-more:hover {
+  background: #ec7585;
 }

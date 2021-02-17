@@ -14,13 +14,16 @@ import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Json.Decode exposing (Error(..))
+import Maybe.Extra as Maybe
 import RemoteData exposing (RemoteData)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.Object
+import Taco.Object exposing (Post, RootQueryToPostConnectionEdge)
 import Taco.Object.Post as Post
 import Taco.Object.RootQueryToPostConnection
+import Taco.Object.RootQueryToPostConnectionEdge as Edge
 import Taco.Object.User as User
-import Taco.Query as Query
+import Taco.Object.WPPageInfo
+import Taco.Query as Query exposing (posts)
 import Taco.Scalar exposing (Id)
 
 
@@ -40,13 +43,17 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( initialModel, getPosts )
+    ( initialModel, getPosts "" )
 
 
 initialModel : Model
 initialModel =
     { showDropDown = False
-    , response = RemoteData.Loading
+    , postsResponse = RemoteData.Loading
+    , morePostsResponse = RemoteData.NotAsked
+    , posts = []
+    , lastCursor = ""
+    , hasNextPage = False
     }
 
 
@@ -56,80 +63,32 @@ initialModel =
 
 type alias Model =
     { showDropDown : Bool
-    , response : RemoteData (Graphql.Http.Error Response) Response
+    , postsResponse : RemoteData (Graphql.Http.Error TestResponse) TestResponse
+    , morePostsResponse : RemoteData (Graphql.Http.Error TestResponse) TestResponse
+    , posts : List Post
+    , lastCursor : String
+    , hasNextPage : Bool
     }
 
 
-
----- UPDATE ----
-
-
-type Msg
-    = ClickedMenuButton
-    | ClickedCloseMenuButton
-    | GotResponse (RemoteData (Graphql.Http.Error Response) Response)
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        ClickedMenuButton ->
-            ( { model | showDropDown = not model.showDropDown }, Cmd.none )
-
-        ClickedCloseMenuButton ->
-            ( { model | showDropDown = False }, Cmd.none )
-
-        GotResponse response ->
-            ( { model | response = response }, Cmd.none )
-
-
-
----- QUERY ----
+type alias TestResponse =
+    Maybe Response
 
 
 type alias Response =
-    Maybe (List Post)
+    Paginator (List Post) String
 
 
-getPosts : Cmd Msg
-getPosts =
-    postsQuery
-        |> Graphql.Http.queryRequest "http://localhost/graphql"
-        |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
+type alias Paginator dataType cursorType =
+    { data : dataType
+    , paginationData : PaginationData cursorType
+    }
 
 
-
--- getUser : Cmd Msg
--- getUser =
---     query
---         |> Graphql.Http.queryRequest "http://localhost/graphql"
---         |> Graphql.Http.send (RemoteData.fromResult >> GotUser)
--- type alias User =
---     { firstName : Maybe String
---     , lastName : Maybe String
---     , username : Maybe String
---     }
--- type alias Users =
---     { edges : List User
---     }
--- query : SelectionSet Response RootQuery
--- query =
---     Query.user getOptArgs getReqArgs userSelection
--- getOptArgs : Query.UserOptionalArguments -> Query.UserOptionalArguments
--- getOptArgs args =
---     { idType = Null }
--- getReqArgs : Query.UserRequiredArguments
--- getReqArgs =
---     { id = getId }
--- getId : Id
--- getId =
---     Taco.Scalar.Id "dXNlcjox"
--- userSelection : SelectionSet User Taco.Object.User
--- userSelection =
---     SelectionSet.map3 User
---         User.firstName
---         User.lastName
---         User.username
+type alias PaginationData cursorType =
+    { cursor : Maybe cursorType
+    , hasNextPage : Bool
+    }
 
 
 type alias Posts =
@@ -145,24 +104,150 @@ type alias Post =
     }
 
 
-postsQuery : SelectionSet (Maybe (List Post)) RootQuery
-postsQuery =
-    Query.posts getPostsOptArgs postsSelection
+
+---- UPDATE ----
 
 
-getPostsOptArgs : Query.PostsOptionalArguments -> Query.PostsOptionalArguments
-getPostsOptArgs args =
-    { first = Null
+type Msg
+    = ClickedMenuButton
+    | ClickedCloseMenuButton
+    | GotResponse (RemoteData (Graphql.Http.Error TestResponse) TestResponse)
+    | GotMorePostsResponse (RemoteData (Graphql.Http.Error TestResponse) TestResponse)
+    | ClickedLoadMore
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        ClickedMenuButton ->
+            ( { model | showDropDown = not model.showDropDown }, Cmd.none )
+
+        ClickedCloseMenuButton ->
+            ( { model | showDropDown = False }, Cmd.none )
+
+        GotResponse response ->
+            case response of
+                RemoteData.Success data ->
+                    let
+                        posts =
+                            case data of
+                                Just res ->
+                                    res.data
+
+                                Nothing ->
+                                    []
+
+                        hasNextPage =
+                            case data of
+                                Just res ->
+                                    res.paginationData.hasNextPage
+
+                                Nothing ->
+                                    True
+
+                        lastCursor =
+                            case data of
+                                Just res ->
+                                    justOrEmpty res.paginationData.cursor
+
+                                Nothing ->
+                                    ""
+                    in
+                    ( { model | postsResponse = response, posts = posts, hasNextPage = hasNextPage, lastCursor = lastCursor }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotMorePostsResponse response ->
+            case response of
+                RemoteData.Success data ->
+                    let
+                        posts =
+                            case data of
+                                Just res ->
+                                    List.concat [ model.posts, res.data ]
+
+                                Nothing ->
+                                    []
+
+                        hasNextPage =
+                            case data of
+                                Just res ->
+                                    res.paginationData.hasNextPage
+
+                                Nothing ->
+                                    True
+
+                        lastCursor =
+                            case data of
+                                Just res ->
+                                    justOrEmpty res.paginationData.cursor
+
+                                Nothing ->
+                                    ""
+                    in
+                    ( { model | morePostsResponse = response, posts = posts, hasNextPage = hasNextPage, lastCursor = lastCursor }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ClickedLoadMore ->
+            ( model, getMorePosts model.lastCursor )
+
+
+
+---- QUERY ----
+
+
+getPosts : String -> Cmd Msg
+getPosts cursor =
+    postsQuery cursor
+        |> Graphql.Http.queryRequest "http://localhost/graphql"
+        |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
+
+
+getMorePosts : String -> Cmd Msg
+getMorePosts cursor =
+    postsQuery cursor
+        |> Graphql.Http.queryRequest "http://localhost/graphql"
+        |> Graphql.Http.send (RemoteData.fromResult >> GotMorePostsResponse)
+
+
+postsQuery : String -> SelectionSet (Maybe Response) RootQuery
+postsQuery cursor =
+    Query.posts (getPostsOptArgs cursor) postsSelection
+
+
+getPostsOptArgs : String -> Query.PostsOptionalArguments -> Query.PostsOptionalArguments
+getPostsOptArgs cursor args =
+    { first = Graphql.OptionalArgument.Present 5
     , last = Null
-    , after = Null
+    , after = Graphql.OptionalArgument.Present cursor
     , before = Null
     , where_ = Null
     }
 
 
-postsSelection : SelectionSet (List Post) Taco.Object.RootQueryToPostConnection
+postsSelection : SelectionSet Response Taco.Object.RootQueryToPostConnection
 postsSelection =
-    Taco.Object.RootQueryToPostConnection.nodes postSelection
+    SelectionSet.succeed Paginator
+        |> with postsSelectionEdges
+        |> with (Taco.Object.RootQueryToPostConnection.pageInfo pageInfoSelection |> nonNullOrFail)
+
+
+pageInfoSelection : SelectionSet (PaginationData String) Taco.Object.WPPageInfo
+pageInfoSelection =
+    SelectionSet.succeed PaginationData
+        |> with Taco.Object.WPPageInfo.endCursor
+        |> with Taco.Object.WPPageInfo.hasNextPage
+
+
+postsSelectionEdges : SelectionSet (List Post) Taco.Object.RootQueryToPostConnection
+postsSelectionEdges =
+    Taco.Object.RootQueryToPostConnection.edges
+        (Edge.node postSelection
+            |> SelectionSet.nonNullOrFail
+        )
         |> nonNullOrFail
         |> nonNullElementsOrFail
 
@@ -195,27 +280,27 @@ view : Model -> Html Msg
 view model =
     let
         postList =
-            case model.response of
+            case model.postsResponse of
                 RemoteData.Success result ->
                     let
-                        list =
+                        postsInfo =
                             case result of
                                 Just res ->
-                                    res
+                                    ( model.posts, model.hasNextPage )
 
                                 Nothing ->
-                                    []
+                                    ( [], False )
                     in
-                    List.map viewPost list
+                    viewPostList model postsInfo
 
                 RemoteData.Failure _ ->
-                    [ text "Failed to load blog posts" ]
+                    text "Failed to load blog posts"
 
                 RemoteData.Loading ->
-                    [ text "Loading Posts" ]
+                    text "Loading Posts"
 
                 RemoteData.NotAsked ->
-                    [ text "Loading Posts" ]
+                    text "Loading Posts"
 
         menuItems =
             div [ class "nav-dropdown" ]
@@ -254,7 +339,17 @@ view model =
                     ]
                 ]
             ]
-        , div [ class "page animate__animated animate__backInUp" ] postList
+        , div [ class "page animate__animated animate__backInUp" ]
+            [ postList ]
+        ]
+
+
+viewPostList : Model -> ( List Post, Bool ) -> Html Msg
+viewPostList model ( posts, hasMore ) =
+    div []
+        [ div [] (List.map viewPost posts)
+        , viewIf hasMore
+            (button [ class "load-more", onClick ClickedLoadMore ] [ text "Load More" ])
         ]
 
 
@@ -291,20 +386,21 @@ viewPost post =
             justOrEmpty post.content
     in
     div [ class "post" ]
-        [ h1 [] [ text title ]
+        [ h1 [ class "post-title" ] [ text title ]
         , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ date ]
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
-        , div [ class "post-about" ]
-            [ div [ class "about-image" ]
-                [ img [ src "./elizabeth.jpg" ] [] ]
-            , div [ class "about-text" ]
-                [ span [ class "text-bold text-large stack-m" ] [ text "Elizabeth Hale" ]
-                , span [ class "text-italic text-light stack-s" ] [ text "Taco Consumer, Part-time Genius, Taco Developer, Author" ]
-                , p [ class "" ] [ text "She seems to have the same skills as you.\" Now I know that by studying, they mean math where no one can actually do it well or accurately and if there are any mistakes made—no matter how simple of an error could cause someone harm; when some student has done horrible things in class just because he wants to get into college…it would be unthinkable for them not only academically but emotionally too,\"" ]
-                , p [ class "" ] [ text "The teacher said with certainty and assurance. It's true: every person studied did terrible things during his early childhood including bad behavior on homework (not counting all those nights hanging out at recess), beating up your parents over trivial questions" ]
-                ]
-            ]
+
+        -- , div [ class "post-about" ]
+        --     [ div [ class "about-image" ]
+        --         [ img [ src "./elizabeth.jpg" ] [] ]
+        --     , div [ class "about-text" ]
+        --         [ span [ class "text-bold text-large stack-m" ] [ text "Elizabeth Hale" ]
+        --         , span [ class "text-italic text-light stack-s" ] [ text "Taco Consumer, Part-time Genius, Taco Developer, Author" ]
+        --         , p [ class "" ] [ text "She seems to have the same skills as you.\" Now I know that by studying, they mean math where no one can actually do it well or accurately and if there are any mistakes made—no matter how simple of an error could cause someone harm; when some student has done horrible things in class just because he wants to get into college…it would be unthinkable for them not only academically but emotionally too,\"" ]
+        --         , p [ class "" ] [ text "The teacher said with certainty and assurance. It's true: every person studied did terrible things during his early childhood including bad behavior on homework (not counting all those nights hanging out at recess), beating up your parents over trivial questions" ]
+        --         ]
+        --     ]
         ]
 
 
