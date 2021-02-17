@@ -43,6 +43,23 @@ h1 {
 p {
 }
 
+.spinner {
+  margin: 8px;
+}
+
+.spinner svg {
+  animation: rotate 2s infinite linear;
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .wrapper {
   width: 100%;
   margin: 0 auto;
@@ -313,4 +330,9 @@ p {
 
 .load-more:hover {
   background: #ec7585;
+}
+
+.load-more:disabled {
+  background: #444;
+  cursor: default;
 }

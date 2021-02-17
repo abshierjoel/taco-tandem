@@ -1,15 +1,18 @@
 module Main exposing (..)
 
-import Browser exposing (element)
+import Browser exposing (Document, element)
+import Browser.Dom exposing (Error(..))
+import Browser.Navigation as Nav
 import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
-import Html exposing (Html, button, div, h1, img, menuitem, p, span, text)
-import Html.Attributes exposing (class, src, style, width)
+import Html exposing (Html, a, button, div, h1, img, menuitem, p, span, text)
+import Html.Attributes exposing (class, disabled, src, style, width)
 import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
@@ -25,6 +28,8 @@ import Taco.Object.User as User
 import Taco.Object.WPPageInfo
 import Taco.Query as Query exposing (posts)
 import Taco.Scalar exposing (Id)
+import Url exposing (Url)
+import Url.Parser as Parser exposing ((</>), Parser, s, string)
 
 
 
@@ -33,22 +38,50 @@ import Taco.Scalar exposing (Id)
 
 main : Program () Model Msg
 main =
-    Browser.element
-        { view = view
-        , init = \_ -> init
-        , update = update
+    Browser.application
+        { init = init
+        , onUrlRequest = \_ -> Debug.todo "Handle URL Requests"
+        , onUrlChange = \_ -> Debug.todo "Handle URL Changes"
         , subscriptions = always Sub.none
+        , update = update
+        , view = view
         }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel, getPosts "" )
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    updateUrl url initialModel
+
+
+updateUrl : Url -> Model -> ( Model, Cmd Msg )
+updateUrl url model =
+    case Parser.parse parser url of
+        Just HomeRoute ->
+            ( { initialModel | page = Homepage }, getPosts "" )
+
+        Just (PageRoute name) ->
+            ( { initialModel | page = Homepage }, Cmd.none )
+
+        Just (PostRoute name) ->
+            ( { initialModel | page = PostPage name }, Cmd.none )
+
+        Nothing ->
+            ( { initialModel | page = NotFoundPage }, Cmd.none )
+
+
+parser : Parser (Route -> a) a
+parser =
+    Parser.oneOf
+        [ Parser.map PageRoute (s "page" </> Parser.string)
+        , Parser.map HomeRoute Parser.top
+        , Parser.map PostRoute (s "post" </> Parser.string)
+        ]
 
 
 initialModel : Model
 initialModel =
-    { showDropDown = False
+    { page = Homepage
+    , showDropDown = False
     , postsResponse = RemoteData.Loading
     , morePostsResponse = RemoteData.NotAsked
     , posts = []
@@ -61,8 +94,22 @@ initialModel =
 ---- MODEL ----
 
 
+type Page
+    = Homepage
+    | PostPage String
+    | PagePage String
+    | NotFoundPage
+
+
+type Route
+    = HomeRoute
+    | PostRoute String
+    | PageRoute String
+
+
 type alias Model =
-    { showDropDown : Bool
+    { page : Page
+    , showDropDown : Bool
     , postsResponse : RemoteData (Graphql.Http.Error TestResponse) TestResponse
     , morePostsResponse : RemoteData (Graphql.Http.Error TestResponse) TestResponse
     , posts : List Post
@@ -192,7 +239,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ClickedLoadMore ->
-            ( model, getMorePosts model.lastCursor )
+            ( { model | morePostsResponse = RemoteData.Loading }, getMorePosts model.lastCursor )
 
 
 
@@ -276,8 +323,15 @@ postContentArgs args =
 ---- VIEW ----
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
+    { title = "Taco Tandem"
+    , body = [ viewMain model ]
+    }
+
+
+viewMain : Model -> Html Msg
+viewMain model =
     let
         postList =
             case model.postsResponse of
@@ -301,7 +355,18 @@ view model =
 
                 RemoteData.NotAsked ->
                     text "Loading Posts"
+    in
+    div [ class "wrapper" ]
+        [ Icon.css
+        , viewHeader model.showDropDown
+        , div [ class "page animate__animated animate__backInUp" ]
+            [ postList ]
+        ]
 
+
+viewHeader : Bool -> Html Msg
+viewHeader showDropDown =
+    let
         menuItems =
             div [ class "nav-dropdown" ]
                 [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
@@ -312,45 +377,64 @@ view model =
                     [ Icon.viewStyled [] Icon.times, text "Close" ]
                 ]
     in
-    div [ class "wrapper" ]
-        [ Icon.css
-        , div [ class "header" ]
-            [ div [ class "header-logo animate__animated animate__zoomIn " ]
-                [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
-                    [ img [ src "./taco.svg" ] [] ]
-                , div [ class "header-text" ]
-                    [ span [] [ text " Taco" ]
-                    , span [] [ text "Tandem" ]
-                    ]
-                ]
-            , div [ class "nav-wrapper" ]
-                [ div [ class "mobile-header-nav header-icon animate__animated animate__backInLeft" ]
-                    [ button [ class "menu-button", onClick ClickedMenuButton ]
-                        [ Icon.viewStyled [] Icon.bars
-                        , text " Menu"
-                        ]
-                    ]
-                , viewIf model.showDropDown menuItems
-                , div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
-                    [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
-                    , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
-                    , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
-                    , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
-                    ]
+    div [ class "header" ]
+        [ div
+            [ class "header-logo animate__animated animate__zoomIn " ]
+            [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
+                [ img [ src "./taco.svg" ] [] ]
+            , div [ class "header-text" ]
+                [ span [] [ text " Taco" ]
+                , span [] [ text "Tandem" ]
                 ]
             ]
-        , div [ class "page animate__animated animate__backInUp" ]
-            [ postList ]
+        , div [ class "nav-wrapper" ]
+            [ div [ class "mobile-header-nav header-icon animate__animated animate__backInLeft" ]
+                [ button [ class "menu-button", onClick ClickedMenuButton ]
+                    [ Icon.viewStyled [] Icon.bars
+                    , text " Menu"
+                    ]
+                ]
+            , viewIf showDropDown menuItems
+            , div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
+                [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
+                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
+                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
+                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
+                ]
+            ]
         ]
 
 
 viewPostList : Model -> ( List Post, Bool ) -> Html Msg
 viewPostList model ( posts, hasMore ) =
+    let
+        isLoading =
+            case model.morePostsResponse of
+                RemoteData.Loading ->
+                    True
+
+                _ ->
+                    False
+
+        buttonText =
+            if isLoading then
+                "Prepping Tacos..."
+
+            else
+                "Load More Posts"
+    in
     div []
         [ div [] (List.map viewPost posts)
         , viewIf hasMore
-            (button [ class "load-more", onClick ClickedLoadMore ] [ text "Load More" ])
+            (button [ class "load-more", onClick ClickedLoadMore, disabled isLoading ]
+                [ viewIf isLoading viewSpinner, text buttonText ]
+            )
         ]
+
+
+viewSpinner : Html msg
+viewSpinner =
+    span [ class "spinner" ] [ Icon.viewStyled [] IconReg.lemon ]
 
 
 justOrEmpty : Maybe String -> String
