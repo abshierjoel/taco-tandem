@@ -15,6 +15,7 @@ import Html.Attributes exposing (class, disabled)
 import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
+import Iso8601
 import RemoteData exposing (RemoteData)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.Object exposing (Post, RootQueryToPostConnectionEdge)
@@ -25,6 +26,7 @@ import Taco.Object.User as User
 import Taco.Object.WPPageInfo
 import Taco.Query as Query exposing (posts)
 import Taco.Scalar exposing (Id)
+import Time exposing (Month(..))
 
 
 
@@ -345,21 +347,84 @@ getParsedHtml html =
             []
 
 
+getTime : Time.Posix -> String
+getTime dateTime =
+    let
+        day =
+            Time.toDay Time.utc dateTime
+
+        month =
+            Time.toMonth Time.utc dateTime
+
+        year =
+            Time.toYear Time.utc dateTime
+    in
+    monthToString month ++ " " ++ String.fromInt day ++ ", " ++ String.fromInt year
+
+
+monthToString : Month -> String
+monthToString month =
+    case month of
+        Time.Jan ->
+            "January"
+
+        Feb ->
+            "February"
+
+        Mar ->
+            "March"
+
+        Apr ->
+            "April"
+
+        May ->
+            "May"
+
+        Jun ->
+            "June"
+
+        Jul ->
+            "July"
+
+        Aug ->
+            "August"
+
+        Sep ->
+            "September"
+
+        Oct ->
+            "October"
+
+        Nov ->
+            "November"
+
+        Dec ->
+            "December"
+
+
 viewPost : Post -> Html Msg
 viewPost post =
     let
         title =
             justOrEmpty post.title
 
-        date =
-            justOrEmpty post.date
+        dateResult =
+            Iso8601.toTime (justOrEmpty post.date)
+
+        timeString =
+            case dateResult of
+                Ok res ->
+                    getTime res
+
+                _ ->
+                    "Unknown Date"
 
         content =
             justOrEmpty post.content
     in
     div [ class "post" ]
         [ h1 [ class "post-title" ] [ text title ]
-        , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ date ]
+        , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ timeString ]
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
 
