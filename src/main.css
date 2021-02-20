@@ -34,6 +34,8 @@ body {
 }
 
 h1 {
+  font-size: 5vh;
+  line-height: 6vh;
   margin: unset;
   color: #414141;
   font-family: 'Aliseo', 'Source Sans Pro', 'Trebuchet MS', 'Lucida Grande',
@@ -154,6 +156,7 @@ p {
   flex-grow: 1;
   line-height: 5vh;
   font-size: 2vh;
+  text-decoration: none;
   border: unset;
   border-width: 0;
   background: transparent;
