@@ -10,8 +10,8 @@ import Graphql.Http
 import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
-import Html exposing (Html)
-import Html.Attributes exposing (class, disabled)
+import Html exposing (Html, a)
+import Html.Attributes exposing (class, disabled, href)
 import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
@@ -109,6 +109,13 @@ type alias Post =
     , uri : String
     , title : Maybe String
     , content : Maybe String
+    , preview : Preview
+    }
+
+
+type alias Preview =
+    { title : Maybe String
+    , content : Maybe String
     }
 
 
@@ -117,8 +124,7 @@ type alias Post =
 
 
 type Msg
-    = DoNothing
-    | GotResponse (RemoteData (Graphql.Http.Error TestResponse) TestResponse)
+    = GotResponse (RemoteData (Graphql.Http.Error TestResponse) TestResponse)
     | GotMorePostsResponse (RemoteData (Graphql.Http.Error TestResponse) TestResponse)
     | ClickedLoadMore
 
@@ -126,9 +132,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        DoNothing ->
-            ( model, Cmd.none )
-
         GotResponse response ->
             case response of
                 RemoteData.Success data ->
@@ -258,10 +261,18 @@ postsSelectionEdges =
 
 postSelection : SelectionSet Post Taco.Object.Post
 postSelection =
-    SelectionSet.map5 Post
+    SelectionSet.map6 Post
         Post.date
         Post.commentCount
         Post.uri
+        (Post.title postTitleArgs)
+        (Post.content postContentArgs)
+        previewSelection
+
+
+previewSelection : SelectionSet Preview Taco.Object.Post
+previewSelection =
+    SelectionSet.map2 Preview
         (Post.title postTitleArgs)
         (Post.content postContentArgs)
 
@@ -337,6 +348,36 @@ viewPostList model ( posts, hasMore ) =
         ]
 
 
+viewPost : Post -> Html Msg
+viewPost post =
+    let
+        title =
+            justOrEmpty post.title
+
+        dateResult =
+            Iso8601.toTime (justOrEmpty post.date)
+
+        timeString =
+            case dateResult of
+                Ok res ->
+                    getTime res
+
+                _ ->
+                    "Unknown Date"
+
+        content =
+            justOrEmpty post.content
+    in
+    div [ class "post" ]
+        [ a [ href <| "/post" ++ post.uri ]
+            [ h1 [ class "post-title" ] [ text title ]
+            ]
+        , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ timeString ]
+        , div [ class "post-body" ]
+            (Html.Parser.Util.toVirtualDom (getParsedHtml content))
+        ]
+
+
 getParsedHtml : String -> List Node
 getParsedHtml html =
     case Html.Parser.run html of
@@ -400,45 +441,6 @@ monthToString month =
 
         Dec ->
             "December"
-
-
-viewPost : Post -> Html Msg
-viewPost post =
-    let
-        title =
-            justOrEmpty post.title
-
-        dateResult =
-            Iso8601.toTime (justOrEmpty post.date)
-
-        timeString =
-            case dateResult of
-                Ok res ->
-                    getTime res
-
-                _ ->
-                    "Unknown Date"
-
-        content =
-            justOrEmpty post.content
-    in
-    div [ class "post" ]
-        [ h1 [ class "post-title" ] [ text title ]
-        , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ timeString ]
-        , div [ class "post-body" ]
-            (Html.Parser.Util.toVirtualDom (getParsedHtml content))
-
-        -- , div [ class "post-about" ]
-        --     [ div [ class "about-image" ]
-        --         [ img [ src "./elizabeth.jpg" ] [] ]
-        --     , div [ class "about-text" ]
-        --         [ span [ class "text-bold text-large stack-m" ] [ text "Elizabeth Hale" ]
-        --         , span [ class "text-italic text-light stack-s" ] [ text "Taco Consumer, Part-time Genius, Taco Developer, Author" ]
-        --         , p [ class "" ] [ text "She seems to have the same skills as you.\" Now I know that by studying, they mean math where no one can actually do it well or accurately and if there are any mistakes made—no matter how simple of an error could cause someone harm; when some student has done horrible things in class just because he wants to get into college…it would be unthinkable for them not only academically but emotionally too,\"" ]
-        --         , p [ class "" ] [ text "The teacher said with certainty and assurance. It's true: every person studied did terrible things during his early childhood including bad behavior on homework (not counting all those nights hanging out at recess), beating up your parents over trivial questions" ]
-        --         ]
-        --     ]
-        ]
 
 
 viewSpinner : Html msg

@@ -45,6 +45,15 @@ h1 {
 p {
 }
 
+a {
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: #e0485d;
+}
+
 .spinner {
   margin: 8px;
 }
@@ -238,6 +247,11 @@ p {
   margin-bottom: 20px;
 }
 
+.post-title:hover,
+.post-title:focus {
+  color: #e0485d;
+}
+
 .post-author {
   color: #777;
 }
@@ -255,6 +269,11 @@ p {
 
 .post-body img {
   max-width: 100%;
+}
+
+.post-body h1 {
+  font-size: 2.5rem;
+  line-height: 3rem;
 }
 
 .post-about {

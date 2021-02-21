@@ -21,6 +21,7 @@ import Html.Parser.Util
 import Json.Decode exposing (Error(..))
 import Maybe.Extra as Maybe
 import RemoteData exposing (RemoteData)
+import SinglePostPage as SinglePostPage
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.Object exposing (Post, RootQueryToPostConnectionEdge)
 import Taco.Object.Post as Post
@@ -72,11 +73,11 @@ updateUrl url model =
         Just HomeRoute ->
             toHomepageModel { model | page = Homepage Home.initialModel } (Home.init ())
 
+        Just (PostRoute slug) ->
+            toSinglePostModel { model | page = PostPage SinglePostPage.initialModel } (SinglePostPage.init slug)
+
         Just (PageRoute name) ->
             ( { model | page = Homepage Home.initialModel }, Cmd.none )
-
-        Just (PostRoute name) ->
-            ( { model | page = PostPage name }, Cmd.none )
 
         Nothing ->
             ( { model | page = NotFoundPage }, Cmd.none )
@@ -105,7 +106,7 @@ initialModel key =
 
 type Page
     = Homepage Home.Model
-    | PostPage String
+    | PostPage SinglePostPage.Model
     | PagePage String
     | NotFoundPage
 
@@ -131,6 +132,7 @@ type Msg
     = ClickedMenuButton
     | ClickedCloseMenuButton
     | GotHomepageMsg Home.Msg
+    | GotSinglePostPageMsg SinglePostPage.Msg
     | ClickedLink Browser.UrlRequest
     | ChangedUrl Url
 
@@ -148,6 +150,14 @@ update msg model =
             case model.page of
                 Homepage homepageModel ->
                     toHomepageModel model (Home.update homepageMsg homepageModel)
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotSinglePostPageMsg singlePostMsg ->
+            case model.page of
+                PostPage singlePostModel ->
+                    toSinglePostModel model (SinglePostPage.update singlePostMsg singlePostModel)
 
                 _ ->
                     ( model, Cmd.none )
@@ -171,6 +181,13 @@ toHomepageModel model ( latestPosts, cmd ) =
     )
 
 
+toSinglePostModel : Model -> ( SinglePostPage.Model, Cmd SinglePostPage.Msg ) -> ( Model, Cmd Msg )
+toSinglePostModel model ( singleModel, cmd ) =
+    ( { model | page = PostPage singleModel }
+    , Cmd.map GotSinglePostPageMsg cmd
+    )
+
+
 
 ---- VIEW ----
 
@@ -183,6 +200,10 @@ view model =
                 Homepage homepageModel ->
                     Home.view homepageModel
                         |> Html.map GotHomepageMsg
+
+                PostPage singlePostModel ->
+                    SinglePostPage.view singlePostModel
+                        |> Html.map GotSinglePostPageMsg
 
                 _ ->
                     viewNotFound
@@ -215,7 +236,7 @@ viewHeader showDropDown =
         [ div
             [ class "header-logo animate__animated animate__zoomIn " ]
             [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
-                [ img [ src "./taco.svg" ] [] ]
+                [ img [ src "/taco.svg" ] [] ]
             , div [ class "header-text" ]
                 [ span [] [ text " Taco" ]
                 , span [] [ text "Tandem" ]
