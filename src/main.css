@@ -54,6 +54,12 @@ a:focus {
   color: #e0485d;
 }
 
+.page-spinner {
+  font-size: 4rem;
+  text-align: center;
+  margin: 40px auto;
+}
+
 .spinner {
   margin: 8px;
 }
@@ -173,8 +179,10 @@ a:focus {
   cursor: pointer;
 }
 
-.nav-button:hover,
-.menu-button:hover {
+a.nav-button:hover,
+a.nav-button:active,
+a.nav-button:visited,
+a.nav-button:link {
   color: #fff;
 }
 
@@ -240,14 +248,22 @@ a:focus {
   }
 }
 
+.post-separator {
+  position: absolute;
+  width: 100%;
+  margin: 60px 0;
+  left: 0;
+  border-top: 4px dashed #ddd;
+}
+
 .post {
   color: #222;
   margin-bottom: 160px;
 }
 
 .post-title {
-  font-size: 5vh;
-  line-height: 6vh;
+  font-size: 4vh;
+  line-height: 5vh;
   margin: unset;
   margin-bottom: 20px;
 }
@@ -259,6 +275,8 @@ a > .post-title:hover,
 
 .post-author {
   color: #777;
+  font-size: 1.2rem;
+  font-style: italic;
 }
 
 .post-body {
@@ -277,8 +295,8 @@ a > .post-title:hover,
 }
 
 .post-body h1 {
-  font-size: 2.5rem;
-  line-height: 3rem;
+  font-size: 2rem;
+  line-height: 2.5rem;
 }
 
 .post-about {
@@ -362,4 +380,13 @@ a > .post-title:hover,
 .load-more:disabled {
   background: #444;
   cursor: default;
+}
+
+.sr-only {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }

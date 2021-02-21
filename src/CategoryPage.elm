@@ -12,6 +12,7 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Html exposing (Html, a)
 import Html.Attributes exposing (class, disabled, href)
+import Html.Attributes.Aria exposing (ariaHidden)
 import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
@@ -19,7 +20,8 @@ import Iso8601
 import RemoteData exposing (RemoteData)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.InputObject
-import Taco.Object exposing (Post, RootQueryToPostConnectionEdge)
+import Taco.Object exposing (NodeWithAuthorToUserConnectionEdge, Post, RootQueryToPostConnectionEdge)
+import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
 import Taco.Object.Post as Post
 import Taco.Object.RootQueryToPostConnection
 import Taco.Object.RootQueryToPostConnectionEdge as Edge
@@ -113,12 +115,20 @@ type alias Post =
     , title : Maybe String
     , content : Maybe String
     , preview : Preview
+    , author : Maybe User
     }
 
 
 type alias Preview =
     { title : Maybe String
     , content : Maybe String
+    }
+
+
+type alias User =
+    { firstName : Maybe String
+    , nickname : Maybe String
+    , description : Maybe String
     }
 
 
@@ -271,13 +281,28 @@ postsSelectionEdges =
 
 postSelection : SelectionSet Post Taco.Object.Post
 postSelection =
-    SelectionSet.map6 Post
+    SelectionSet.map7 Post
         Post.date
         Post.commentCount
         Post.uri
         (Post.title postTitleArgs)
         (Post.content postContentArgs)
         previewSelection
+        (Post.author authorSelectionEdge)
+
+
+authorSelectionEdge : SelectionSet User Taco.Object.NodeWithAuthorToUserConnectionEdge
+authorSelectionEdge =
+    NodeWithAuthorToUserConnectionEdge.node authorSelection
+        |> nonNullOrFail
+
+
+authorSelection : SelectionSet User Taco.Object.User
+authorSelection =
+    SelectionSet.map3 User
+        User.firstName
+        User.nickname
+        User.description
 
 
 previewSelection : SelectionSet Preview Taco.Object.Post
@@ -319,16 +344,21 @@ view model =
                     viewPostList model postsInfo
 
                 RemoteData.Failure _ ->
-                    text "Failed to load blog posts"
+                    div [] [ h1 [] [ text "Sorry! The tacos are lost!" ], text "Failed to load blog posts" ]
 
                 RemoteData.Loading ->
-                    text "Loading Posts"
+                    div [ class "page-spinner" ]
+                        [ viewSpinner
+                        , span [ class "sr-only" ] [ text "Loading posts..." ]
+                        , span [ ariaHidden True ] [ text " Prepping Tacos" ]
+                        ]
 
                 RemoteData.NotAsked ->
                     text "Loading Posts"
     in
     div [ class "page animate__animated animate__backInUp" ]
-        [ postList ]
+        [ postList
+        ]
 
 
 viewPostList : Model -> ( List Post, Bool ) -> Html Msg
@@ -375,6 +405,14 @@ viewPost post =
                 _ ->
                     "Unknown Date"
 
+        postInfo =
+            case post.author of
+                Just res ->
+                    "By " ++ justOrEmpty res.firstName ++ " on " ++ timeString
+
+                _ ->
+                    "Posted on " ++ timeString
+
         content =
             justOrEmpty post.content
     in
@@ -382,9 +420,10 @@ viewPost post =
         [ a [ href <| "/post" ++ post.uri ]
             [ h1 [ class "post-title" ] [ text title ]
             ]
-        , span [ class "post-author" ] [ text <| "By Elizabeth Hale on " ++ timeString ]
+        , span [ class "post-author" ] [ text postInfo ]
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
+        , div [ class "post-separator" ] []
         ]
 
 

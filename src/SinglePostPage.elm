@@ -12,6 +12,7 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Html
 import Html.Attributes exposing (class, src)
+import Html.Attributes.Aria exposing (ariaHidden)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Iso8601
@@ -201,13 +202,25 @@ view model =
                             div [] [ viewPost res ]
 
                         _ ->
-                            div [] [ text "Failure Hurts" ]
+                            div []
+                                [ h1 []
+                                    [ text "Sorry! This is not the taco you're looking for" ]
+                                , text "The blog post you're looking for couldn't be found."
+                                ]
 
                 RemoteData.Loading ->
-                    div [] [ text "Loading..." ]
+                    div [ class "page-spinner" ]
+                        [ viewSpinner
+                        , span [ class "sr-only" ] [ text "Loading posts..." ]
+                        , span [ ariaHidden True ] [ text " Prepping Tacos" ]
+                        ]
 
                 _ ->
-                    div [] [ text "Failure Hurts" ]
+                    div []
+                        [ h1 []
+                            [ text "Sorry! This is not the taco you're looking for" ]
+                        , text "The blog post you're looking for couldn't be found."
+                        ]
     in
     div [ class "page animate__animated animate__backInUp" ]
         [ div [] [ content ] ]

@@ -187,7 +187,7 @@ update msg model =
                     ( model, Nav.pushUrl model.key (Url.toString url) )
 
         ChangedUrl url ->
-            updateUrl url model
+            updateUrl url { model | showDropDown = False }
 
 
 toHomepageModel : Model -> ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
@@ -251,22 +251,25 @@ viewHeader showDropDown =
     let
         menuItems =
             div [ class "nav-dropdown" ]
-                [ button [ class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
-                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
-                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
-                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
+                [ a [ href "/", class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
+                , a [ href "/c/travels/", class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
+                , a [ href "/c/recipes/", class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
+
+                --, a [ href "/about", class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
                 , button [ class "nav-button", onClick ClickedCloseMenuButton ]
                     [ Icon.viewStyled [] Icon.times, text "Close" ]
                 ]
     in
     div [ class "header" ]
-        [ div
-            [ class "header-logo animate__animated animate__zoomIn " ]
-            [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
-                [ img [ src "/taco.svg" ] [] ]
-            , div [ class "header-text" ]
-                [ span [] [ text " Taco" ]
-                , span [] [ text "Tandem" ]
+        [ a [ href "/" ]
+            [ div
+                [ class "header-logo animate__animated animate__zoomIn " ]
+                [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
+                    [ img [ src "/taco.svg" ] [] ]
+                , div [ class "header-text" ]
+                    [ span [] [ text " Taco" ]
+                    , span [] [ text "Tandem" ]
+                    ]
                 ]
             ]
         , div [ class "nav-wrapper" ]
@@ -279,9 +282,10 @@ viewHeader showDropDown =
             , viewIf showDropDown menuItems
             , div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
                 [ a [ href "/", class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
-                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
-                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
-                , button [ class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
+                , a [ href "/c/travels/", class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
+                , a [ href "/c/recipes/", class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
+
+                --, a [ href "/about", class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
                 ]
             ]
         ]
