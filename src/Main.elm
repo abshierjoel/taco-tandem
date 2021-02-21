@@ -4,6 +4,7 @@ import Accessibility exposing (h2)
 import Browser exposing (Document, element)
 import Browser.Dom exposing (Error(..))
 import Browser.Navigation as Nav
+import CategoryPage as CatPage
 import FontAwesome.Icon as Icon exposing (Icon)
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
@@ -23,7 +24,7 @@ import Maybe.Extra as Maybe
 import RemoteData exposing (RemoteData)
 import SinglePostPage as SinglePostPage
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.Object exposing (Post, RootQueryToPostConnectionEdge)
+import Taco.Object exposing (Category, Post, RootQueryToPostConnectionEdge)
 import Taco.Object.Post as Post
 import Taco.Object.RootQueryToPostConnection
 import Taco.Object.RootQueryToPostConnectionEdge as Edge
@@ -73,6 +74,9 @@ updateUrl url model =
         Just HomeRoute ->
             toHomepageModel { model | page = Homepage Home.initialModel } (Home.init ())
 
+        Just (CategoryRoute categoryName) ->
+            toCategoryPageModel { model | page = CategoryPage CatPage.initialModel } (CatPage.init categoryName)
+
         Just (PostRoute slug) ->
             toSinglePostModel { model | page = PostPage SinglePostPage.initialModel } (SinglePostPage.init slug)
 
@@ -86,8 +90,9 @@ updateUrl url model =
 parser : Parser (Route -> a) a
 parser =
     Parser.oneOf
-        [ Parser.map PageRoute (s "page" </> Parser.string)
-        , Parser.map HomeRoute Parser.top
+        [ Parser.map HomeRoute Parser.top
+        , Parser.map CategoryRoute (s "c" </> Parser.string)
+        , Parser.map PageRoute (s "page" </> Parser.string)
         , Parser.map PostRoute (s "post" </> Parser.string)
         ]
 
@@ -108,11 +113,13 @@ type Page
     = Homepage Home.Model
     | PostPage SinglePostPage.Model
     | PagePage String
+    | CategoryPage CatPage.Model
     | NotFoundPage
 
 
 type Route
     = HomeRoute
+    | CategoryRoute String
     | PostRoute String
     | PageRoute String
 
@@ -132,6 +139,7 @@ type Msg
     = ClickedMenuButton
     | ClickedCloseMenuButton
     | GotHomepageMsg Home.Msg
+    | GotCategoryPageMsg CatPage.Msg
     | GotSinglePostPageMsg SinglePostPage.Msg
     | ClickedLink Browser.UrlRequest
     | ChangedUrl Url
@@ -150,6 +158,14 @@ update msg model =
             case model.page of
                 Homepage homepageModel ->
                     toHomepageModel model (Home.update homepageMsg homepageModel)
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotCategoryPageMsg categoryPageMsg ->
+            case model.page of
+                CategoryPage categoryPageModel ->
+                    toCategoryPageModel model (CatPage.update categoryPageMsg categoryPageModel)
 
                 _ ->
                     ( model, Cmd.none )
@@ -181,6 +197,13 @@ toHomepageModel model ( latestPosts, cmd ) =
     )
 
 
+toCategoryPageModel : Model -> ( CatPage.Model, Cmd CatPage.Msg ) -> ( Model, Cmd Msg )
+toCategoryPageModel model ( categoryPageModel, cmd ) =
+    ( { model | page = CategoryPage categoryPageModel }
+    , Cmd.map GotCategoryPageMsg cmd
+    )
+
+
 toSinglePostModel : Model -> ( SinglePostPage.Model, Cmd SinglePostPage.Msg ) -> ( Model, Cmd Msg )
 toSinglePostModel model ( singleModel, cmd ) =
     ( { model | page = PostPage singleModel }
@@ -204,6 +227,10 @@ view model =
                 PostPage singlePostModel ->
                     SinglePostPage.view singlePostModel
                         |> Html.map GotSinglePostPageMsg
+
+                CategoryPage categoryPageModel ->
+                    CatPage.view categoryPageModel
+                        |> Html.map GotCategoryPageMsg
 
                 _ ->
                     viewNotFound
