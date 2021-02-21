@@ -46,6 +46,7 @@ p {
 }
 
 a {
+  color: inherit;
   text-decoration: none;
 }
 
@@ -273,10 +274,59 @@ a > .post-title:hover,
   color: #e0485d;
 }
 
-.post-author {
+.post-subtitle {
+  display: flex;
   color: #777;
   font-size: 1.2rem;
+  line-height: 2rem;
   font-style: italic;
+
+  border-top: 1px dashed #ccc;
+  border-bottom: 1px dashed #ccc;
+  padding: 12px 0;
+}
+
+.post-info {
+  flex-grow: 1;
+}
+
+.post-share {
+  flex-grow: 1;
+  text-align: right;
+  font-size: 1.8rem;
+}
+
+@media screen and (max-width: 768px) {
+  .post-subtitle {
+    font-size: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .post-share {
+    text-align: center;
+  }
+}
+
+.post-share svg {
+  margin-left: 0.5rem;
+}
+
+.post-share a:hover {
+  filter: brightness(1.4);
+}
+
+a.social-fb {
+  color: #3b5998;
+}
+a.social-twitter {
+  color: #1da1f2;
+}
+a.social-pinterest {
+  color: #c8232c;
+}
+a.social-linkedin {
+  color: #0072b1;
 }
 
 .post-body {
@@ -297,6 +347,23 @@ a > .post-title:hover,
 .post-body h1 {
   font-size: 2rem;
   line-height: 2.5rem;
+}
+
+@media screen and (max-width: 768px) {
+  .post-body {
+    font-size: 1rem;
+    line-height: 1.8rem;
+  }
+
+  .post-body h1 {
+    font-size: 1.4rem;
+    line-height: 1.5rem;
+  }
+
+  .post-body h2 {
+    font-size: 1.2rem;
+    line-height: 1.3rem;
+  }
 }
 
 .post-about {

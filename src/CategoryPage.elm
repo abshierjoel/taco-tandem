@@ -18,6 +18,7 @@ import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Iso8601
 import RemoteData exposing (RemoteData)
+import SocialLinks exposing (viewShareButtons)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.InputObject
 import Taco.Object exposing (NodeWithAuthorToUserConnectionEdge, Post, RootQueryToPostConnectionEdge)
@@ -420,7 +421,10 @@ viewPost post =
         [ a [ href <| "/post" ++ post.uri ]
             [ h1 [ class "post-title" ] [ text title ]
             ]
-        , span [ class "post-author" ] [ text postInfo ]
+        , div [ class "post-subtitle" ]
+            [ div [ class "post-info" ] [ text postInfo ]
+            , viewShareButtons post.uri title
+            ]
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         , div [ class "post-separator" ] []

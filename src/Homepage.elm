@@ -2,6 +2,7 @@ module Homepage exposing (..)
 
 import Accessibility as Html exposing (Html, button, div, h1, span, text)
 import Browser
+import FontAwesome.Brands as Icon
 import FontAwesome.Icon as Icon exposing (Icon)
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
@@ -12,12 +13,13 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Html exposing (Html, a)
 import Html.Attributes exposing (class, disabled, href)
-import Html.Attributes.Aria exposing (ariaHidden)
+import Html.Attributes.Aria exposing (ariaHidden, ariaLabel)
 import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Iso8601
 import RemoteData exposing (RemoteData)
+import SocialLinks exposing (viewShareButtons)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.Object exposing (NodeWithAuthorToUserConnectionEdge, Post, RootQueryToPostConnectionEdge)
 import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
@@ -409,7 +411,10 @@ viewPost post =
         [ a [ href <| "/post" ++ post.uri ]
             [ h1 [ class "post-title" ] [ text title ]
             ]
-        , span [ class "post-author" ] [ text postInfo ]
+        , div [ class "post-subtitle" ]
+            [ div [ class "post-info" ] [ text postInfo ]
+            , viewShareButtons post.uri title
+            ]
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         , div [ class "post-separator" ] []

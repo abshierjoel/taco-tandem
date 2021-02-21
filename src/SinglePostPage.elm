@@ -17,6 +17,7 @@ import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Iso8601
 import RemoteData exposing (RemoteData)
+import SocialLinks exposing (viewShareButtons)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.Object exposing (Avatar, NodeWithAuthorToUserConnectionEdge, Post, User)
 import Taco.Object.Avatar as Avatar
@@ -264,7 +265,10 @@ viewPost post =
     in
     div [ class "post" ]
         [ h1 [ class "post-title" ] [ text title ]
-        , span [ class "post-author" ] [ text postInfo ]
+        , div [ class "post-subtitle" ]
+            [ div [ class "post-info" ] [ text postInfo ]
+            , viewShareButtons post.uri title
+            ]
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         , author
