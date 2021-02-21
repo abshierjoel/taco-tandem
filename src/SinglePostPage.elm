@@ -19,9 +19,11 @@ import Iso8601
 import RemoteData exposing (RemoteData)
 import SocialLinks exposing (viewShareButtons)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.Object exposing (Avatar, NodeWithAuthorToUserConnectionEdge, Post, User)
+import Taco.Object exposing (Avatar, MediaItem, NodeWithAuthorToUserConnectionEdge, NodeWithFeaturedImageToMediaItemConnectionEdge, Post, User)
 import Taco.Object.Avatar as Avatar
+import Taco.Object.MediaItem as MediaItem
 import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
+import Taco.Object.NodeWithFeaturedImageToMediaItemConnectionEdge as NodeWithFeaturedImageToMediaItemConnectionEdge
 import Taco.Object.Post as Post
 import Taco.Object.User as User
 import Taco.Query as Query exposing (postBy)
@@ -79,6 +81,7 @@ type alias Post =
     , content : Maybe String
     , author : Maybe User
     , excerpt : Maybe String
+    , featuredImage : Maybe MediaItem
     }
 
 
@@ -87,6 +90,11 @@ type alias User =
     , nickname : Maybe String
     , avatar : Maybe Avatar
     , description : Maybe String
+    }
+
+
+type alias MediaItem =
+    { sourceUrl : Maybe String
     }
 
 
@@ -143,7 +151,7 @@ getPostOptArgs slug args =
 
 postSelection : SelectionSet Post Taco.Object.Post
 postSelection =
-    SelectionSet.map7 Post
+    SelectionSet.map8 Post
         Post.date
         Post.commentCount
         Post.uri
@@ -151,6 +159,19 @@ postSelection =
         (Post.content postContentArgs)
         (Post.author authorSelectionEdge)
         (Post.excerpt (\optionals -> optionals))
+        (Post.featuredImage featuredImageSelectionEdge)
+
+
+featuredImageSelectionEdge : SelectionSet MediaItem Taco.Object.NodeWithFeaturedImageToMediaItemConnectionEdge
+featuredImageSelectionEdge =
+    NodeWithFeaturedImageToMediaItemConnectionEdge.node featuredImageSelection
+        |> nonNullOrFail
+
+
+featuredImageSelection : SelectionSet MediaItem Taco.Object.MediaItem
+featuredImageSelection =
+    SelectionSet.map MediaItem
+        (MediaItem.sourceUrl (\optionals -> optionals))
 
 
 authorSelectionEdge : SelectionSet User Taco.Object.NodeWithAuthorToUserConnectionEdge

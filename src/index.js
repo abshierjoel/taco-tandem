@@ -3,6 +3,7 @@ import '../node_modules/animate.css';
 import { Elm } from './Main.elm';
 import 'animate.css';
 import * as serviceWorker from './serviceWorker';
+import { decode } from 'html-entities';
 
 const app = Elm.Main.init({
   node: document.getElementById('root'),
@@ -10,15 +11,26 @@ const app = Elm.Main.init({
 
 app.ports.sendNewOpenGraph.subscribe((data) => {
   if (data) {
+    console.log(data);
+
     document
       .querySelector('meta[property="og:title"]')
       .setAttribute('content', `Taco Tandem - ${data.title}`);
 
+    document
+      .querySelector('meta[property="og:type"]')
+      .setAttribute('content', 'article');
+
+    document
+      .querySelector('meta[property="og:image"]')
+      .setAttribute('content', data.featuredImage.sourceUrl);
+
     const strippedExcerpt = data.excerpt.replace(/(<([^>]+)>)/gi, '');
+    const decodeHtmlEntities = decode(strippedExcerpt);
 
     document
       .querySelector('meta[property="og:description"]')
-      .setAttribute('content', strippedExcerpt);
+      .setAttribute('content', decodeHtmlEntities);
 
     document
       .querySelector('meta[property="og:url"]')
