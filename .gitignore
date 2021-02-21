@@ -14,7 +14,7 @@ node_modules
 .DS_Store
 
 # Fonts
-*.otf
-*.svg
+#*.otf
+#*.svg
 *.ai
 *.psd
