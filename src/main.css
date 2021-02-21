@@ -173,6 +173,11 @@ a:focus {
   cursor: pointer;
 }
 
+.nav-button:hover,
+.menu-button:hover {
+  color: #fff;
+}
+
 .nav-button svg {
   margin-right: 12px;
 }
@@ -247,7 +252,7 @@ a:focus {
   margin-bottom: 20px;
 }
 
-.post-title:hover,
+a > .post-title:hover,
 .post-title:focus {
   color: #e0485d;
 }
