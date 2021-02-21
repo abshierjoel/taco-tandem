@@ -1,4 +1,4 @@
-module SinglePostPage exposing (..)
+port module SinglePostPage exposing (..)
 
 import Accessibility as Html exposing (Html, div, h1, img, p, span, text)
 import Browser
@@ -30,6 +30,9 @@ import Time exposing (Month(..))
 
 
 ---- PROGRAM ----
+
+
+port sendNewOpenGraph : Maybe Post -> Cmd msg
 
 
 main : Program String Model Msg
@@ -75,6 +78,7 @@ type alias Post =
     , title : Maybe String
     , content : Maybe String
     , author : Maybe User
+    , excerpt : Maybe String
     }
 
 
@@ -106,7 +110,7 @@ update msg model =
         GotResponse response ->
             case response of
                 RemoteData.Success data ->
-                    ( { model | post = response }, Cmd.none )
+                    ( { model | post = response }, sendNewOpenGraph data )
 
                 _ ->
                     ( model, Cmd.none )
@@ -139,13 +143,14 @@ getPostOptArgs slug args =
 
 postSelection : SelectionSet Post Taco.Object.Post
 postSelection =
-    SelectionSet.map6 Post
+    SelectionSet.map7 Post
         Post.date
         Post.commentCount
         Post.uri
         (Post.title postTitleArgs)
         (Post.content postContentArgs)
         (Post.author authorSelectionEdge)
+        (Post.excerpt (\optionals -> optionals))
 
 
 authorSelectionEdge : SelectionSet User Taco.Object.NodeWithAuthorToUserConnectionEdge

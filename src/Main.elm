@@ -23,6 +23,7 @@ import Json.Decode exposing (Error(..))
 import Maybe.Extra as Maybe
 import RemoteData exposing (RemoteData)
 import SinglePostPage as SinglePostPage
+import String.Extra
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
 import Taco.Object exposing (Category, Post, RootQueryToPostConnectionEdge)
 import Taco.Object.Post as Post
@@ -102,7 +103,12 @@ initialModel key =
     { page = Homepage Home.initialModel
     , showDropDown = False
     , key = key
+    , pageTitle = homepageTitle
     }
+
+
+homepageTitle =
+    "Taco Tandem - A Blog to Share the Love of Tacos!"
 
 
 
@@ -128,6 +134,7 @@ type alias Model =
     { page : Page
     , showDropDown : Bool
     , key : Nav.Key
+    , pageTitle : String
     }
 
 
@@ -192,21 +199,44 @@ update msg model =
 
 toHomepageModel : Model -> ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
 toHomepageModel model ( latestPosts, cmd ) =
-    ( { model | page = Homepage latestPosts }
+    ( { model | page = Homepage latestPosts, pageTitle = homepageTitle }
     , Cmd.map GotHomepageMsg cmd
     )
 
 
 toCategoryPageModel : Model -> ( CatPage.Model, Cmd CatPage.Msg ) -> ( Model, Cmd Msg )
 toCategoryPageModel model ( categoryPageModel, cmd ) =
-    ( { model | page = CategoryPage categoryPageModel }
+    let
+        newTitle =
+            String.Extra.toTitleCase categoryPageModel.categoryId ++ " - Taco Tandem"
+    in
+    ( { model | page = CategoryPage categoryPageModel, pageTitle = newTitle }
     , Cmd.map GotCategoryPageMsg cmd
     )
 
 
 toSinglePostModel : Model -> ( SinglePostPage.Model, Cmd SinglePostPage.Msg ) -> ( Model, Cmd Msg )
 toSinglePostModel model ( singleModel, cmd ) =
-    ( { model | page = PostPage singleModel }
+    let
+        newTitle =
+            case singleModel.post of
+                RemoteData.Success data ->
+                    case data of
+                        Just post ->
+                            case post.title of
+                                Just res ->
+                                    res ++ " - Taco Tandem"
+
+                                _ ->
+                                    model.pageTitle
+
+                        _ ->
+                            model.pageTitle
+
+                _ ->
+                    model.pageTitle
+    in
+    ( { model | page = PostPage singleModel, pageTitle = newTitle }
     , Cmd.map GotSinglePostPageMsg cmd
     )
 
@@ -235,7 +265,7 @@ view model =
                 _ ->
                     viewNotFound
     in
-    { title = "Taco Tandem"
+    { title = model.pageTitle
     , body =
         [ div [ class "wrapper" ]
             [ Icon.css
