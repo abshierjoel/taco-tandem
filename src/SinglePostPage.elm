@@ -1,27 +1,30 @@
 port module SinglePostPage exposing (..)
 
-import Accessibility as Html exposing (Html, div, h1, h3, img, p, span, text)
+import Accessibility as Html exposing (Html, button, div, h1, h3, img, inputText, label, p, span, text, textarea)
 import Browser
 import FontAwesome.Icon as Icon exposing (Icon)
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import Graphql.Http
-import Graphql.Operation exposing (RootQuery)
+import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
-import Html
-import Html.Attributes exposing (class, src)
-import Html.Attributes.Aria exposing (ariaHidden)
-import Html.Parser exposing (Node)
+import Html exposing (a, form)
+import Html.Attributes exposing (class, disabled, href, id, required, src, type_, value)
+import Html.Attributes.Aria exposing (ariaHidden, ariaLabel)
+import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Parser exposing (Node(..))
 import Html.Parser.Util
 import Iso8601
 import Json.Decode exposing (string)
 import RemoteData exposing (RemoteData)
 import SocialLinks exposing (viewShareButtons)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
+import Taco.InputObject exposing (CreateCommentInput)
 import Taco.Interface exposing (Commenter)
 import Taco.Interface.Commenter as Commenter
+import Taco.Mutation as Mutation exposing (CreateCommentRequiredArguments, createComment)
 import Taco.Object
     exposing
         ( Avatar
@@ -40,6 +43,7 @@ import Taco.Object.Avatar as Avatar
 import Taco.Object.Comment as Comment
 import Taco.Object.CommentAuthor as CommentAuthor
 import Taco.Object.CommentToCommenterConnectionEdge as CommentToCommenterConnectionEdge
+import Taco.Object.CreateCommentPayload as CreateCommentPayload
 import Taco.Object.MediaItem as MediaItem
 import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
 import Taco.Object.NodeWithFeaturedImageToMediaItemConnectionEdge as NodeWithFeaturedImageToMediaItemConnectionEdge
@@ -48,6 +52,7 @@ import Taco.Object.PostToCommentConnection as PostToCommentConnection
 import Taco.Object.PostToCommentConnectionEdge as PostToCommentConnectionEdge
 import Taco.Object.User as User
 import Taco.Query as Query exposing (postBy)
+import Taco.ScalarCodecs
 import Time exposing (Month(..))
 
 
@@ -81,6 +86,10 @@ initialModel : Model
 initialModel =
     { slug = "i-sure-love-tacos"
     , post = RemoteData.Loading
+    , newComment = RemoteData.NotAsked
+    , commentName = ""
+    , commentEmail = ""
+    , commentContent = ""
     }
 
 
@@ -91,6 +100,10 @@ initialModel =
 type alias Model =
     { slug : String
     , post : RemoteData (Graphql.Http.Error (Maybe Post)) (Maybe Post)
+    , newComment : RemoteData (Graphql.Http.Error (Maybe CreateCommentPayload)) (Maybe CreateCommentPayload)
+    , commentName : String
+    , commentEmail : String
+    , commentContent : String
     }
 
 
@@ -104,6 +117,7 @@ type alias Post =
     , excerpt : Maybe String
     , featuredImage : Maybe MediaItem
     , comments : Maybe (List Comment)
+    , databaseId : Int
     }
 
 
@@ -139,12 +153,23 @@ type alias Commenter =
     }
 
 
+type alias CreateCommentPayload =
+    { success : Maybe Bool
+    , comment : Maybe Comment
+    }
+
+
 
 ---- UPDATE ----
 
 
 type Msg
     = GotResponse (RemoteData (Graphql.Http.Error (Maybe Post)) (Maybe Post))
+    | ChangedNameInput String
+    | ChangedEmailInput String
+    | ChangedContentInput String
+    | SubmittedNewComment
+    | GotAddCommentResponse (RemoteData (Graphql.Http.Error (Maybe CreateCommentPayload)) (Maybe CreateCommentPayload))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -158,9 +183,74 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        ChangedNameInput value ->
+            ( { model | commentName = value }, Cmd.none )
+
+        ChangedEmailInput value ->
+            ( { model | commentEmail = value }, Cmd.none )
+
+        ChangedContentInput value ->
+            ( { model | commentContent = value }, Cmd.none )
+
+        SubmittedNewComment ->
+            case model.post of
+                RemoteData.Success maybePost ->
+                    case maybePost of
+                        Just thePost ->
+                            ( model
+                            , addComment thePost.databaseId
+                                ( model.commentName
+                                , model.commentEmail
+                                , model.commentContent
+                                )
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        GotAddCommentResponse response ->
+            ( { model | newComment = response }, Cmd.none )
+
 
 
 ---- QUERY ----
+
+
+addComment : Int -> ( String, String, String ) -> Cmd Msg
+addComment postId ( name, email, content ) =
+    addCommentQuery postId ( name, email, content )
+        |> Graphql.Http.mutationRequest "http://localhost/graphql"
+        |> Graphql.Http.send (RemoteData.fromResult >> GotAddCommentResponse)
+
+
+addCommentQuery : Int -> ( String, String, String ) -> SelectionSet (Maybe CreateCommentPayload) RootMutation
+addCommentQuery postId ( name, email, content ) =
+    Mutation.createComment (addCommentArgs postId ( name, email, content )) addCommentSelection
+
+
+addCommentArgs : Int -> ( String, String, String ) -> CreateCommentRequiredArguments
+addCommentArgs postId ( name, email, content ) =
+    { input =
+        Taco.InputObject.buildCreateCommentInput
+            (\optionals ->
+                { optionals
+                    | commentOn = Graphql.OptionalArgument.Present postId
+                    , author = Graphql.OptionalArgument.Present name
+                    , authorEmail = Graphql.OptionalArgument.Present email
+                    , content = Graphql.OptionalArgument.Present content
+                }
+            )
+    }
+
+
+addCommentSelection : SelectionSet CreateCommentPayload Taco.Object.CreateCommentPayload
+addCommentSelection =
+    SelectionSet.map2 CreateCommentPayload
+        CreateCommentPayload.success
+        (CreateCommentPayload.comment commentSelection)
 
 
 getPost : String -> Cmd Msg
@@ -196,6 +286,7 @@ postSelection =
         |> with (Post.excerpt (\optionals -> optionals))
         |> with (Post.featuredImage featuredImageSelectionEdge)
         |> with (Post.comments (\optionals -> optionals) commentsSelectionEdges)
+        |> with Post.databaseId
 
 
 commentsSelectionEdges : SelectionSet (List Comment) Taco.Object.PostToCommentConnection
@@ -293,7 +384,7 @@ view model =
                 RemoteData.Success data ->
                     case data of
                         Just res ->
-                            div [] [ viewPost res ]
+                            div [] [ viewPost res model ]
 
                         _ ->
                             div []
@@ -320,8 +411,8 @@ view model =
         [ div [] [ content ] ]
 
 
-viewPost : Post -> Html Msg
-viewPost post =
+viewPost : Post -> Model -> Html Msg
+viewPost post model =
     let
         title =
             justOrEmpty post.title
@@ -371,6 +462,37 @@ viewPost post =
 
                 _ ->
                     0
+
+        addCommentArea =
+            case model.newComment of
+                RemoteData.NotAsked ->
+                    viewAddComment ( model.commentName, model.commentEmail, model.commentContent )
+
+                RemoteData.Loading ->
+                    div [ class "alert info" ] [ viewSpinner, text " Submitting Your Taco Comment" ]
+
+                RemoteData.Failure _ ->
+                    div [ class "alert error" ]
+                        [ Icon.viewStyled [] Icon.timesCircle
+                        , text "Failed to submit your comment, sorry!"
+                        ]
+
+                RemoteData.Success result ->
+                    div [ class "alert success" ]
+                        [ Icon.viewStyled [] Icon.checkCircle
+                        , text "Your comment has been received and is awaiting approval! Thanks! :)"
+                        ]
+
+        ------- This code is for later, if we auto-approv
+        -- case result ofe comments
+        -- Just commentPayload ->
+        --     case commentPayload.comment of
+        --         Just comment ->
+        --             viewComment comment
+        --         _ ->
+        --             span [] []
+        -- Nothing ->
+        --     span [] []
     in
     div [ class "post" ]
         [ h1 [ class "post-title" ] [ text title ]
@@ -382,6 +504,8 @@ viewPost post =
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         , author
         , viewComments comments commentCount
+        , div [ class "add-comment", id "add-comment" ]
+            [ h3 [] [ text "Post a Comment" ], addCommentArea ]
         ]
 
 
@@ -458,6 +582,34 @@ viewComment comment =
         [ span [ class "comment-author" ] [ text author ]
         , span [ class "comment-date" ] [ text timeString ]
         , span [ class "comment-content" ] (Html.Parser.Util.toVirtualDom (getParsedHtml content))
+        ]
+
+
+viewAddComment : ( String, String, String ) -> Html Msg
+viewAddComment ( name, email, content ) =
+    let
+        isDisabled =
+            if String.isEmpty name || String.isEmpty email || String.isEmpty content then
+                True
+
+            else
+                False
+    in
+    form [ onSubmit SubmittedNewComment, class "new-comment" ]
+        [ label []
+            [ text "Name (required):"
+            , inputText "" [ onInput ChangedNameInput, required True, value name ]
+            ]
+        , label []
+            [ text "Email (required):"
+            , inputText "" [ onInput ChangedEmailInput, required True, value email ]
+            ]
+        , label []
+            [ text "Comment:"
+            , textarea [ onInput ChangedContentInput, required True ] [ text content ]
+            ]
+        , button [ type_ "button", onClick SubmittedNewComment, disabled isDisabled, ariaLabel "Post Comment" ]
+            [ text "Comment" ]
         ]
 
 

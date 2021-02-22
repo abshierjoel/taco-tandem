@@ -42,6 +42,13 @@ h1 {
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
 
+h2 {
+}
+h3 {
+  font-size: 2rem;
+  line-height: 3rem;
+}
+
 p {
 }
 
@@ -433,8 +440,8 @@ a.social-linkedin {
   -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
 
-  font-size: 2vw;
-  line-height: 4vw;
+  font-size: 2rem;
+  line-height: 4rem;
   text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.1);
 
   cursor: pointer;
@@ -484,4 +491,93 @@ a.social-linkedin {
   margin-top: 12px;
   text-indent: 1rem;
   padding-left: 1rem;
+}
+
+.add-comment {
+  min-height: 300px;
+}
+
+.new-comment {
+  display: flex;
+  flex-direction: column;
+  border-top: 4px dashed #ccc;
+  padding-top: 40px;
+}
+
+.new-comment label {
+  display: flex;
+  flex-direction: column;
+  font-size: 1.1rem;
+  line-height: 2rem;
+  margin-bottom: 20px;
+}
+
+.new-comment input[type='text'],
+.new-comment textarea {
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  line-height: 1.5rem;
+  padding: 0.5rem;
+}
+
+.new-comment textarea {
+  resize: none;
+  min-height: 200px;
+  font-size: 1rem;
+  line-height: 1.6rem;
+  letter-spacing: 0.1rem;
+  font-family: Tahoma, Geneva, Verdana, sans-serif;
+}
+
+button {
+  width: 100%;
+  border: none;
+
+  border-radius: 4vw;
+  background: #e0485d;
+  color: white;
+  -webkit-box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2);
+
+  font-size: 1.6rem;
+  line-height: 4rem;
+  text-shadow: 0 -2px 1px rgba(0, 0, 0, 0.1);
+
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.alert {
+  font-size: 1.1rem;
+  border-radius: 40px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #322885;
+}
+
+.alert svg {
+  margin-right: 1rem;
+}
+
+.alert.success {
+  border-color: green;
+  background-color: rgb(220, 240, 220);
+}
+
+.alert.success svg {
+  color: green;
+}
+
+.alert.error {
+  border-color: darkred;
+  background-color: rgb(248, 222, 222);
+}
+
+.alert.error svg {
+  color: darkred;
 }
