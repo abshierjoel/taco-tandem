@@ -457,3 +457,31 @@ a.social-linkedin {
   height: 1px;
   overflow: hidden;
 }
+
+.comments {
+}
+
+.comment {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+  padding-bottom: 40px;
+  border-top: 1px dashed #ccc;
+}
+
+.comment-author {
+  font-size: 1.2rem;
+  line-height: 2rem;
+  color: #333;
+}
+
+.comment-date {
+  color: #555;
+  font-style: italic;
+}
+
+.comment-content {
+  margin-top: 12px;
+  text-indent: 1rem;
+  padding-left: 1rem;
+}

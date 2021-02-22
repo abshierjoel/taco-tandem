@@ -1,6 +1,6 @@
 port module SinglePostPage exposing (..)
 
-import Accessibility as Html exposing (Html, div, h1, img, p, span, text)
+import Accessibility as Html exposing (Html, div, h1, h3, img, p, span, text)
 import Browser
 import FontAwesome.Icon as Icon exposing (Icon)
 import FontAwesome.Regular as IconReg
@@ -16,15 +16,36 @@ import Html.Attributes.Aria exposing (ariaHidden)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Iso8601
+import Json.Decode exposing (string)
 import RemoteData exposing (RemoteData)
 import SocialLinks exposing (viewShareButtons)
 import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.Object exposing (Avatar, MediaItem, NodeWithAuthorToUserConnectionEdge, NodeWithFeaturedImageToMediaItemConnectionEdge, Post, User)
+import Taco.Interface exposing (Commenter)
+import Taco.Interface.Commenter as Commenter
+import Taco.Object
+    exposing
+        ( Avatar
+        , Comment
+        , CommentAuthor
+        , CommentToCommenterConnectionEdge
+        , MediaItem
+        , NodeWithAuthorToUserConnectionEdge
+        , NodeWithFeaturedImageToMediaItemConnectionEdge
+        , Post
+        , PostToCommentConnection
+        , PostToCommentConnectionEdge
+        , User
+        )
 import Taco.Object.Avatar as Avatar
+import Taco.Object.Comment as Comment
+import Taco.Object.CommentAuthor as CommentAuthor
+import Taco.Object.CommentToCommenterConnectionEdge as CommentToCommenterConnectionEdge
 import Taco.Object.MediaItem as MediaItem
 import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
 import Taco.Object.NodeWithFeaturedImageToMediaItemConnectionEdge as NodeWithFeaturedImageToMediaItemConnectionEdge
 import Taco.Object.Post as Post
+import Taco.Object.PostToCommentConnection as PostToCommentConnection
+import Taco.Object.PostToCommentConnectionEdge as PostToCommentConnectionEdge
 import Taco.Object.User as User
 import Taco.Query as Query exposing (postBy)
 import Time exposing (Month(..))
@@ -82,6 +103,7 @@ type alias Post =
     , author : Maybe User
     , excerpt : Maybe String
     , featuredImage : Maybe MediaItem
+    , comments : Maybe (List Comment)
     }
 
 
@@ -101,6 +123,19 @@ type alias MediaItem =
 type alias Avatar =
     { url : Maybe String
     , isRestricted : Maybe Bool
+    }
+
+
+type alias Comment =
+    { content : Maybe String
+    , date : Maybe String
+    , author : Maybe Commenter
+    }
+
+
+type alias Commenter =
+    { name : Maybe String
+    , email : Maybe String
     }
 
 
@@ -151,15 +186,47 @@ getPostOptArgs slug args =
 
 postSelection : SelectionSet Post Taco.Object.Post
 postSelection =
-    SelectionSet.map8 Post
-        Post.date
-        Post.commentCount
-        Post.uri
-        (Post.title postTitleArgs)
-        (Post.content postContentArgs)
-        (Post.author authorSelectionEdge)
-        (Post.excerpt (\optionals -> optionals))
-        (Post.featuredImage featuredImageSelectionEdge)
+    SelectionSet.succeed Post
+        |> with Post.date
+        |> with Post.commentCount
+        |> with Post.uri
+        |> with (Post.title postTitleArgs)
+        |> with (Post.content postContentArgs)
+        |> with (Post.author authorSelectionEdge)
+        |> with (Post.excerpt (\optionals -> optionals))
+        |> with (Post.featuredImage featuredImageSelectionEdge)
+        |> with (Post.comments (\optionals -> optionals) commentsSelectionEdges)
+
+
+commentsSelectionEdges : SelectionSet (List Comment) Taco.Object.PostToCommentConnection
+commentsSelectionEdges =
+    PostToCommentConnection.edges
+        (PostToCommentConnectionEdge.node commentSelection
+            |> SelectionSet.nonNullOrFail
+        )
+        |> nonNullOrFail
+        |> nonNullElementsOrFail
+
+
+commentSelection : SelectionSet Comment Taco.Object.Comment
+commentSelection =
+    SelectionSet.map3 Comment
+        (Comment.content (\optionals -> optionals))
+        Comment.date
+        (Comment.author commentAuthorSelectionEdge)
+
+
+commentAuthorSelectionEdge : SelectionSet Commenter Taco.Object.CommentToCommenterConnectionEdge
+commentAuthorSelectionEdge =
+    CommentToCommenterConnectionEdge.node commentAuthorSelection
+        |> nonNullOrFail
+
+
+commentAuthorSelection : SelectionSet Commenter Taco.Interface.Commenter
+commentAuthorSelection =
+    SelectionSet.map2 Commenter
+        Commenter.name
+        Commenter.email
 
 
 featuredImageSelectionEdge : SelectionSet MediaItem Taco.Object.NodeWithFeaturedImageToMediaItemConnectionEdge
@@ -288,6 +355,22 @@ viewPost post =
 
         content =
             justOrEmpty post.content
+
+        comments =
+            case post.comments of
+                Just res ->
+                    res
+
+                _ ->
+                    []
+
+        commentCount =
+            case post.commentCount of
+                Just res ->
+                    res
+
+                _ ->
+                    0
     in
     div [ class "post" ]
         [ h1 [ class "post-title" ] [ text title ]
@@ -298,6 +381,7 @@ viewPost post =
         , div [ class "post-body" ]
             (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         , author
+        , viewComments comments commentCount
         ]
 
 
@@ -326,6 +410,54 @@ viewAuthor author =
             , span [ class "text-italic text-light stack-s" ] [ text "Taco Consumer, Part-time Genius, Taco Developer, Author" ]
             , span [] (List.map (\line -> p [] [ text line ]) descriptionLines)
             ]
+        ]
+
+
+viewComments : List Comment -> Int -> Html msg
+viewComments comments count =
+    div [ class "comments" ]
+        [ h3 [] [ text <| "Comments (" ++ String.fromInt count ++ ")" ]
+        , div [] (List.map viewComment comments)
+        ]
+
+
+viewComment : Comment -> Html msg
+viewComment comment =
+    let
+        author =
+            case comment.author of
+                Just res ->
+                    justOr res.name "Anonymous"
+
+                _ ->
+                    "Anonymous"
+
+        dateResult =
+            case comment.date of
+                Just res ->
+                    String.slice 0 10 res ++ "T" ++ String.slice 11 21 res
+
+                _ ->
+                    "Unknown Date"
+
+        isoTime =
+            Iso8601.toTime dateResult
+
+        timeString =
+            case isoTime of
+                Ok string ->
+                    getDateTime string
+
+                _ ->
+                    ""
+
+        content =
+            justOrEmpty comment.content
+    in
+    div [ class "comment" ]
+        [ span [ class "comment-author" ] [ text author ]
+        , span [ class "comment-date" ] [ text timeString ]
+        , span [ class "comment-content" ] (Html.Parser.Util.toVirtualDom (getParsedHtml content))
         ]
 
 
@@ -394,6 +526,38 @@ getTime dateTime =
     monthToString month ++ " " ++ String.fromInt day ++ ", " ++ String.fromInt year
 
 
+getDateTime : Time.Posix -> String
+getDateTime dateTime =
+    let
+        date =
+            getTime dateTime
+
+        twentyFourHour =
+            Time.toHour Time.utc dateTime
+
+        hour =
+            if twentyFourHour > 12 then
+                twentyFourHour - 12
+
+            else if twentyFourHour == 0 then
+                12
+
+            else
+                twentyFourHour
+
+        amPm =
+            if twentyFourHour >= 12 then
+                "PM"
+
+            else
+                "AM"
+
+        minute =
+            Time.toMinute Time.utc dateTime
+    in
+    date ++ " at " ++ String.fromInt hour ++ ":" ++ String.fromInt minute ++ amPm
+
+
 viewSpinner : Html msg
 viewSpinner =
     span [ class "spinner" ] [ Icon.viewStyled [] IconReg.lemon ]
@@ -407,6 +571,16 @@ justOrEmpty maybe =
 
         Nothing ->
             ""
+
+
+justOr : Maybe String -> String -> String
+justOr maybe alt =
+    case maybe of
+        Just res ->
+            res
+
+        Nothing ->
+            alt
 
 
 viewIf : Bool -> Html Msg -> Html Msg
