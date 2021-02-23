@@ -70,6 +70,10 @@ subscriptions model =
     Sub.none
 
 
+graphqlEndpoint =
+    "/wordpress/index.php?graphql="
+
+
 
 ---- MODEL ----
 
@@ -221,14 +225,14 @@ update msg model =
 getPosts : String -> Cmd Msg
 getPosts cursor =
     postsQuery cursor
-        |> Graphql.Http.queryRequest "http://localhost/graphql"
+        |> Graphql.Http.queryRequest graphqlEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
 getMorePosts : String -> Cmd Msg
 getMorePosts cursor =
     postsQuery cursor
-        |> Graphql.Http.queryRequest "http://localhost/graphql"
+        |> Graphql.Http.queryRequest graphqlEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotMorePostsResponse)
 
 

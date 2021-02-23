@@ -13,10 +13,15 @@
       homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
     -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="%PUBLIC_URL%/favicon.png"
+    />
+
     <title>Taco Tandem - A blog to share the love of tacos!</title>
 
-    <meta property="og:url" content="http://www.tacotandem.com/" />
+    <meta property="og:url" content="http://tacos.joelabshier.com/" />
     <meta property="og:type" content="article" />
     <meta
       property="og:title"
@@ -28,8 +33,23 @@
     />
     <meta
       property="og:image"
-      content="http://localhost:3000/img/taco-tandem-logo.png"
+      content="http://tacos.joelabshier.com/img/taco-tandem-logo.png"
     />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-3DCD3DDXHV"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+
+      gtag('config', 'G-3DCD3DDXHV');
+    </script>
   </head>
   <body>
     <noscript> You need to enable JavaScript to visit Taco Tandem. </noscript>

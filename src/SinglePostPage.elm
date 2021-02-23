@@ -93,6 +93,10 @@ initialModel =
     }
 
 
+graphqlEndpoint =
+    "/wordpress/index.php?graphql="
+
+
 
 ---- MODEL ----
 
@@ -222,7 +226,7 @@ update msg model =
 addComment : Int -> ( String, String, String ) -> Cmd Msg
 addComment postId ( name, email, content ) =
     addCommentQuery postId ( name, email, content )
-        |> Graphql.Http.mutationRequest "http://localhost/graphql"
+        |> Graphql.Http.mutationRequest graphqlEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotAddCommentResponse)
 
 
@@ -256,7 +260,7 @@ addCommentSelection =
 getPost : String -> Cmd Msg
 getPost slug =
     postQuery slug
-        |> Graphql.Http.queryRequest "http://localhost/graphql"
+        |> Graphql.Http.queryRequest graphqlEndpoint
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
