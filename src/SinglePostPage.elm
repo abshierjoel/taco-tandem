@@ -94,7 +94,7 @@ initialModel =
 
 
 graphqlEndpoint =
-    "/wordpress/index.php?graphql="
+    "http://tacotandem.com/wordpress/index.php?graphql="
 
 
 
@@ -360,7 +360,7 @@ avatarSelection =
 
 avatarOptArgs : User.AvatarOptionalArguments -> User.AvatarOptionalArguments
 avatarOptArgs args =
-    { size = Graphql.OptionalArgument.Null
+    { size = Graphql.OptionalArgument.Present 256
     , forceDefault = Graphql.OptionalArgument.Null
     , rating = Graphql.OptionalArgument.Null
     }
