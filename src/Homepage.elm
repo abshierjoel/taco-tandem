@@ -71,7 +71,7 @@ subscriptions model =
 
 
 graphqlEndpoint =
-    "/wordpress/index.php?graphql="
+    "/wordpress/graphql"
 
 
 
