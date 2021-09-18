@@ -54,7 +54,7 @@ main =
 
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
+init _ url key =
     updateUrl url (initialModel key)
 
 
@@ -107,6 +107,7 @@ initialModel key =
     }
 
 
+homepageTitle : String
 homepageTitle =
     "Taco Tandem - A Blog to Share the Love of Tacos!"
 

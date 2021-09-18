@@ -1,13 +1,12 @@
 module SocialLinks exposing (viewShareButtons)
 
-import Accessibility as Html exposing (Html, button, div, h1, span, text)
+import Accessibility as Html exposing (Html, div)
 import FontAwesome.Brands as Icon
 import FontAwesome.Icon as Icon exposing (Icon)
-import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import Html exposing (Html, a)
-import Html.Attributes exposing (class, disabled, href)
-import Html.Attributes.Aria exposing (ariaHidden, ariaLabel)
+import Html.Attributes exposing (class, href)
+import Html.Attributes.Aria exposing (ariaLabel)
 
 
 viewShareButtons : String -> String -> Html msg
