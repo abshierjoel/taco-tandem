@@ -1,6 +1,7 @@
 name: Deploy PWA
 on: 
   workflow_dispatch:
+    braches: '*'
     inputs:
       name:
         description: 'Person to greet'
