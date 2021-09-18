@@ -1,4 +1,4 @@
-name: 📱 Deploy PWA
+name: Deploy PWA
 on: workflow_dispatch
 jobs:
   build-pwa:
