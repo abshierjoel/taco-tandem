@@ -1,7 +1,7 @@
 name: 📱 Deploy PWA
 on: workflow_dispatch
 jobs:
-  build:
+  build-pwa:
     name: 🏗 Build Website
     runs-on: ubuntu-latest
     env:
@@ -33,7 +33,7 @@ jobs:
 
   pwa:
     name: 📱 Deploy PWA
-    needs: [build]
+    needs: [build-pwa]
     runs-on: ubuntu-latest
     steps:
       - name: 📭 Download build
