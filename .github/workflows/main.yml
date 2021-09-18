@@ -37,7 +37,7 @@ jobs:
 
   web-deploy:
     name: 🍊 Deploy
-    needs: [build-site]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: 📭 Download node_modules
