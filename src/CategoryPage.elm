@@ -1,8 +1,9 @@
 module CategoryPage exposing (..)
 
 import Accessibility as Html exposing (Html, button, div, h1, span, text)
+import BlogConfig exposing (BlogInfo)
 import Browser
-import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Icon as Icon
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
@@ -19,9 +20,9 @@ import Html.Parser.Util
 import Iso8601
 import RemoteData exposing (RemoteData)
 import SocialLinks exposing (viewShareButtons)
-import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
+import Taco.Enum.PostObjectFieldFormatEnum
 import Taco.InputObject
-import Taco.Object exposing (NodeWithAuthorToUserConnectionEdge, Post, RootQueryToPostConnectionEdge)
+import Taco.Object exposing (Post)
 import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
 import Taco.Object.Post as Post
 import Taco.Object.RootQueryToPostConnection
@@ -29,7 +30,6 @@ import Taco.Object.RootQueryToPostConnectionEdge as Edge
 import Taco.Object.User as User
 import Taco.Object.WPPageInfo
 import Taco.Query as Query exposing (posts)
-import Taco.Scalar exposing (Id)
 import Time exposing (Month(..))
 
 
@@ -37,7 +37,7 @@ import Time exposing (Month(..))
 ---- PROGRAM ----
 
 
-main : Program String Model Msg
+main : Program ( BlogInfo, String ) Model Msg
 main =
     Browser.element
         { init = init
@@ -51,33 +51,30 @@ main =
 ---- INIT ----
 
 
-init : String -> ( Model, Cmd Msg )
-init flags =
-    ( { initialModel | categoryId = flags }, getPostsInCategory "" flags )
+init : ( BlogInfo, String ) -> ( Model, Cmd Msg )
+init ( blogInfo, catId ) =
+    ( initialModel blogInfo catId, getPostsInCategory blogInfo.gqlUrl "" catId )
 
 
-initialModel : Model
-initialModel =
+initialModel : BlogInfo -> String -> Model
+initialModel blogInfo catId =
     { postsResponse = RemoteData.Loading
     , morePostsResponse = RemoteData.NotAsked
     , posts = []
     , lastCursor = ""
     , hasNextPage = False
-    , categoryId = ""
+    , categoryId = catId
+    , blogInfo = blogInfo
     }
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
-graphqlEndpoint =
-    "/wordpress/graphql"
 
-
-
----- MODEL ---- 
+---- MODEL ----
 
 
 type alias Model =
@@ -87,6 +84,7 @@ type alias Model =
     , lastCursor : String
     , hasNextPage : Bool
     , categoryId : String
+    , blogInfo : BlogInfo
     }
 
 
@@ -218,24 +216,24 @@ update msg model =
                     ( model, Cmd.none )
 
         ClickedLoadMore ->
-            ( { model | morePostsResponse = RemoteData.Loading }, getMorePostsById model.lastCursor model.categoryId )
+            ( { model | morePostsResponse = RemoteData.Loading }, getMorePostsById model.blogInfo.gqlUrl model.lastCursor model.categoryId )
 
 
 
 ---- QUERY ----
 
 
-getPostsInCategory : String -> String -> Cmd Msg
-getPostsInCategory cursor categoryId =
+getPostsInCategory : String -> String -> String -> Cmd Msg
+getPostsInCategory gqlUrl cursor categoryId =
     postsQuery cursor categoryId
-        |> Graphql.Http.queryRequest graphqlEndpoint
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
-getMorePostsById : String -> String -> Cmd Msg
-getMorePostsById cursor categoryId =
+getMorePostsById : String -> String -> String -> Cmd Msg
+getMorePostsById gqlUrl cursor categoryId =
     postsQuery cursor categoryId
-        |> Graphql.Http.queryRequest graphqlEndpoint
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotMorePostsResponse)
 
 

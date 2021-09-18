@@ -1,9 +1,10 @@
 module Homepage exposing (..)
 
 import Accessibility as Html exposing (Html, button, div, h1, span, text)
+import BlogConfig exposing (BlogInfo)
 import Browser
 import FontAwesome.Brands as Icon
-import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Icon as Icon
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
@@ -36,7 +37,7 @@ import Time exposing (Month(..))
 ---- PROGRAM ----
 
 
-main : Program () Model Msg
+main : Program BlogInfo Model Msg
 main =
     Browser.element
         { init = init
@@ -50,27 +51,25 @@ main =
 ---- INIT ----
 
 
-init : () -> ( Model, Cmd Msg )
-init flags =
-    ( initialModel, getPosts "" )
+init : BlogInfo -> ( Model, Cmd Msg )
+init blogInfo =
+    ( initialModel blogInfo, getPosts blogInfo.gqlUrl "" )
 
 
-initialModel =
+initialModel : BlogInfo -> Model
+initialModel blogInfo =
     { postsResponse = RemoteData.Loading
     , morePostsResponse = RemoteData.NotAsked
     , posts = []
     , lastCursor = ""
     , hasNextPage = False
+    , blogInfo = blogInfo
     }
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
-
-
-graphqlEndpoint =
-    "/wordpress/graphql"
 
 
 
@@ -83,6 +82,7 @@ type alias Model =
     , posts : List Post
     , lastCursor : String
     , hasNextPage : Bool
+    , blogInfo : BlogInfo
     }
 
 
@@ -214,24 +214,24 @@ update msg model =
                     ( model, Cmd.none )
 
         ClickedLoadMore ->
-            ( { model | morePostsResponse = RemoteData.Loading }, getMorePosts model.lastCursor )
+            ( { model | morePostsResponse = RemoteData.Loading }, getMorePosts model.blogInfo.gqlUrl model.lastCursor )
 
 
 
 ---- QUERY ----
 
 
-getPosts : String -> Cmd Msg
-getPosts cursor =
+getPosts : String -> String -> Cmd Msg
+getPosts gqlUrl cursor =
     postsQuery cursor
-        |> Graphql.Http.queryRequest graphqlEndpoint
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
-getMorePosts : String -> Cmd Msg
-getMorePosts cursor =
+getMorePosts : String -> String -> Cmd Msg
+getMorePosts gqlUrl cursor =
     postsQuery cursor
-        |> Graphql.Http.queryRequest graphqlEndpoint
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotMorePostsResponse)
 
 
