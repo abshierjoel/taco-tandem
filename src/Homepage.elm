@@ -13,15 +13,15 @@ import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Html exposing (Html, a)
 import Html.Attributes exposing (class, disabled, href)
-import Html.Attributes.Aria exposing (ariaHidden, ariaLabel)
+import Html.Attributes.Aria exposing (ariaHidden)
 import Html.Events exposing (onClick)
 import Html.Parser exposing (Node)
 import Html.Parser.Util
 import Iso8601
 import RemoteData exposing (RemoteData)
 import SocialLinks exposing (viewShareButtons)
-import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.Object exposing (NodeWithAuthorToUserConnectionEdge, Post, RootQueryToPostConnectionEdge)
+import Taco.Enum.PostObjectFieldFormatEnum
+import Taco.Object exposing (Post)
 import Taco.Object.NodeWithAuthorToUserConnectionEdge as NodeWithAuthorToUserConnectionEdge
 import Taco.Object.Post as Post
 import Taco.Object.RootQueryToPostConnection
@@ -29,7 +29,6 @@ import Taco.Object.RootQueryToPostConnectionEdge as Edge
 import Taco.Object.User as User
 import Taco.Object.WPPageInfo
 import Taco.Query as Query exposing (posts)
-import Taco.Scalar exposing (Id)
 import Time exposing (Month(..))
 
 

@@ -2,7 +2,7 @@ port module SinglePostPage exposing (..)
 
 import Accessibility as Html exposing (Html, button, div, h1, h3, img, inputText, label, p, span, text, textarea)
 import Browser
-import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Icon as Icon
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
@@ -11,7 +11,7 @@ import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Html exposing (a, form)
-import Html.Attributes exposing (class, disabled, href, id, required, src, type_, value)
+import Html.Attributes exposing (class, disabled, id, required, src, type_, value)
 import Html.Attributes.Aria exposing (ariaHidden, ariaLabel)
 import Html.Events exposing (onClick, onInput, onSubmit)
 import Html.Parser exposing (Node(..))
@@ -20,28 +20,21 @@ import Iso8601
 import Json.Decode exposing (string)
 import RemoteData exposing (RemoteData)
 import SocialLinks exposing (viewShareButtons)
-import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.InputObject exposing (CreateCommentInput)
+import Taco.Enum.PostObjectFieldFormatEnum
+import Taco.InputObject
 import Taco.Interface exposing (Commenter)
 import Taco.Interface.Commenter as Commenter
-import Taco.Mutation as Mutation exposing (CreateCommentRequiredArguments, createComment)
+import Taco.Mutation as Mutation exposing (CreateCommentRequiredArguments)
 import Taco.Object
     exposing
         ( Avatar
         , Comment
-        , CommentAuthor
-        , CommentToCommenterConnectionEdge
         , MediaItem
-        , NodeWithAuthorToUserConnectionEdge
-        , NodeWithFeaturedImageToMediaItemConnectionEdge
         , Post
-        , PostToCommentConnection
-        , PostToCommentConnectionEdge
         , User
         )
 import Taco.Object.Avatar as Avatar
 import Taco.Object.Comment as Comment
-import Taco.Object.CommentAuthor as CommentAuthor
 import Taco.Object.CommentToCommenterConnectionEdge as CommentToCommenterConnectionEdge
 import Taco.Object.CreateCommentPayload as CreateCommentPayload
 import Taco.Object.MediaItem as MediaItem

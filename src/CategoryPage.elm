@@ -56,6 +56,7 @@ init flags =
     ( { initialModel | categoryId = flags }, getPostsInCategory "" flags )
 
 
+initialModel : Model
 initialModel =
     { postsResponse = RemoteData.Loading
     , morePostsResponse = RemoteData.NotAsked
@@ -76,7 +77,7 @@ graphqlEndpoint =
 
 
 
----- MODEL ----
+---- MODEL ---- 
 
 
 type alias Model =

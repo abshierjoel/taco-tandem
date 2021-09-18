@@ -69,7 +69,7 @@ function getServedPath(appConfig) {
 module.exports = {
   appPath: resolveApp('.'),
   appPublic: resolveApp('./public'),
-  appHtml: resolveApp('./public/index.html'),
+  appHtml: resolveApp('./public/index.php'),
   appIndexJs: resolveApp('./src/index.js'),
   appSrc: resolveApp('./src'),
   dotenv: resolveApp('./.env'),
