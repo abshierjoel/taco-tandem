@@ -43,6 +43,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: build
+          path: build
 
       - name: 🚚 FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
@@ -50,5 +51,5 @@ jobs:
           server: ${{ secrets.FTP_HOSTNAME }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: build
+          local-dir: build/
           dry-run: true
