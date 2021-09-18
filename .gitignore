@@ -13,6 +13,9 @@ node_modules
 # Desktop Services Store on macOS
 .DS_Store
 
+# Environment Variables 
+.env
+
 # Fonts
 #*.otf
 #*.svg
