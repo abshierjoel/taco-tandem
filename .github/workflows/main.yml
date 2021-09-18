@@ -3,22 +3,73 @@ on:
   push:
     branches:
       - master
+      - multi-job-deploy
 jobs:
-  web-deploy:
-    name: 🍊 Deploy
+  build-npm:
+    name: 🗳 Install node Modules
     runs-on: ubuntu-latest
     steps:
-    - name: 👨‍💻 Get the latest code
-      uses: actions/checkout@v2.3.2
-    - uses: actions/setup-node@master
-    - name: 🤗 Installing project dependencies
-      run: npm install
-    - name: 🛠 Building the project
-      run: npm run build
-    - name: 🚚 FTP Deploy
-      uses: SamKirkland/FTP-Deploy-Action@4.1.0
-      with:
-        server: ${{ secrets.FTP_HOSTNAME }}
-        username: ${{ secrets.FTP_USERNAME }}
-        password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./build/
+      - name: 👨‍💻 Get the latest code
+        uses: actions/checkout@v2.3.2
+
+      - name: 🟢 Setup NodeJS
+        uses: actions/setup-node@master
+        
+      - name: 🔒 Cache Node Modules
+        uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: 📦 Installing project dependencies
+        run: npm install
+
+      - name: ⬆ Upload node_modules
+        uses: actions/upload-artifact@v2
+        with:
+          name: node-modules
+          path: |
+            node_modules
+
+
+  build-site:
+    name: 🏗 Build Website
+    needs: [build-npm]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 👨‍💻 Get the latest code
+        uses: actions/checkout@v2.3.2
+
+      - name: ⬇ Download node_modules
+        uses: actions/download-artifact@v2
+        with:
+          name: node_modules
+
+      - name: 🛠 Building the project
+        run: npm run build
+
+      - name: 📫 Upload Complete Project
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: |
+            build
+
+
+  web-deploy:
+    name: 🍊 Deploy
+    needs: [build-site]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📭 Download node_modules
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+
+      - name: 🚚 FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: ${{ secrets.FTP_HOSTNAME }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./build/
