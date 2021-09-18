@@ -44,8 +44,7 @@ import Taco.Object.Post as Post
 import Taco.Object.PostToCommentConnection as PostToCommentConnection
 import Taco.Object.PostToCommentConnectionEdge as PostToCommentConnectionEdge
 import Taco.Object.User as User
-import Taco.Query as Query exposing (postBy)
-import Taco.ScalarCodecs
+import Taco.Query as Query
 import Time exposing (Month(..))
 
 
@@ -56,7 +55,7 @@ import Time exposing (Month(..))
 port sendNewOpenGraph : Maybe Post -> Cmd msg
 
 
-main : Program String Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
@@ -70,24 +69,28 @@ main =
 ---- INIT ----
 
 
-init : String -> ( Model, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { initialModel | slug = flags }, getPost flags )
+    ( { initialModel | slug = flags.slug, gqlUrl = flags.gqlUrl }, getPost flags )
+
+
+makeFlags : String -> String -> Flags
+makeFlags slug gqlUrl =
+    { slug = slug
+    , gqlUrl = gqlUrl
+    }
 
 
 initialModel : Model
 initialModel =
-    { slug = "i-sure-love-tacos"
+    { slug = "i-really-love-tacos"
     , post = RemoteData.Loading
     , newComment = RemoteData.NotAsked
     , commentName = ""
     , commentEmail = ""
     , commentContent = ""
+    , gqlUrl = "/wordpress/graphql"
     }
-
-
-graphqlEndpoint =
-    "/wordpress/graphql"
 
 
 
@@ -101,6 +104,7 @@ type alias Model =
     , commentName : String
     , commentEmail : String
     , commentContent : String
+    , gqlUrl : String
     }
 
 
@@ -116,6 +120,10 @@ type alias Post =
     , comments : Maybe (List Comment)
     , databaseId : Int
     }
+
+
+type alias Flags =
+    { slug : String, gqlUrl : String }
 
 
 type alias User =
@@ -195,7 +203,8 @@ update msg model =
                     case maybePost of
                         Just thePost ->
                             ( model
-                            , addComment thePost.databaseId
+                            , addComment model.gqlUrl
+                                thePost.databaseId
                                 ( model.commentName
                                 , model.commentEmail
                                 , model.commentContent
@@ -216,10 +225,10 @@ update msg model =
 ---- QUERY ----
 
 
-addComment : Int -> ( String, String, String ) -> Cmd Msg
-addComment postId ( name, email, content ) =
+addComment : String -> Int -> ( String, String, String ) -> Cmd Msg
+addComment gqlUrl postId ( name, email, content ) =
     addCommentQuery postId ( name, email, content )
-        |> Graphql.Http.mutationRequest graphqlEndpoint
+        |> Graphql.Http.mutationRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotAddCommentResponse)
 
 
@@ -250,10 +259,10 @@ addCommentSelection =
         (CreateCommentPayload.comment commentSelection)
 
 
-getPost : String -> Cmd Msg
-getPost slug =
-    postQuery slug
-        |> Graphql.Http.queryRequest graphqlEndpoint
+getPost : Flags -> Cmd Msg
+getPost flags =
+    postQuery flags.slug
+        |> Graphql.Http.queryRequest flags.gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 

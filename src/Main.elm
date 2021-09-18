@@ -1,47 +1,32 @@
 module Main exposing (..)
 
-import Accessibility exposing (h2)
+import BlogConfig exposing (Flags, getFullName, getPageTitle)
 import Browser exposing (Document, element)
 import Browser.Dom exposing (Error(..))
 import Browser.Navigation as Nav
 import CategoryPage as CatPage
-import FontAwesome.Icon as Icon exposing (Icon)
+import FontAwesome.Icon as Icon
 import FontAwesome.Regular as IconReg
 import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
-import Graphql.Http
-import Graphql.Operation exposing (RootQuery)
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
-import Graphql.SelectionSet as SelectionSet exposing (SelectionSet, nonNullElementsOrFail, nonNullOrFail, with)
 import Homepage as Home
-import Html exposing (Html, a, button, div, h1, img, menuitem, p, span, text)
-import Html.Attributes exposing (class, disabled, href, src, style, width)
+import Html exposing (Html, a, button, div, h1, img, p, span, text)
+import Html.Attributes exposing (class, href, src)
 import Html.Events exposing (onClick)
-import Html.Parser exposing (Node)
-import Html.Parser.Util
 import Json.Decode exposing (Error(..))
-import Maybe.Extra as Maybe
-import RemoteData exposing (RemoteData)
+import RemoteData
 import SinglePostPage as SinglePostPage
 import String.Extra
-import Taco.Enum.PostObjectFieldFormatEnum exposing (PostObjectFieldFormatEnum)
-import Taco.Object exposing (Category, Post, RootQueryToPostConnectionEdge)
-import Taco.Object.Post as Post
-import Taco.Object.RootQueryToPostConnection
-import Taco.Object.RootQueryToPostConnectionEdge as Edge
-import Taco.Object.User as User
-import Taco.Object.WPPageInfo
-import Taco.Query as Query exposing (posts)
-import Taco.Scalar exposing (Id)
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, s, string)
+import Url.Parser as Parser exposing ((</>), Parser, s)
 
 
 
 ---- PROGRAM ----
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { init = init
@@ -53,9 +38,9 @@ main =
         }
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url key =
-    updateUrl url (initialModel key)
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    updateUrl url (initialModel ( key, flags ))
 
 
 subscriptions : Model -> Sub Msg
@@ -73,15 +58,15 @@ updateUrl : Url -> Model -> ( Model, Cmd Msg )
 updateUrl url model =
     case Parser.parse parser url of
         Just HomeRoute ->
-            toHomepageModel { model | page = Homepage Home.initialModel } (Home.init ())
+            toHomepageModel { model | page = Homepage Home.initialModel } (Home.init model.blogInfo.gqlUrl)
 
         Just (CategoryRoute categoryName) ->
             toCategoryPageModel { model | page = CategoryPage CatPage.initialModel } (CatPage.init categoryName)
 
         Just (PostRoute slug) ->
-            toSinglePostModel { model | page = PostPage SinglePostPage.initialModel } (SinglePostPage.init slug)
+            toSinglePostModel { model | page = PostPage SinglePostPage.initialModel } (SinglePostPage.init <| SinglePostPage.makeFlags slug model.blogInfo.gqlUrl)
 
-        Just (PageRoute name) ->
+        Just (PageRoute _) ->
             ( { model | page = Homepage Home.initialModel }, Cmd.none )
 
         Nothing ->
@@ -98,18 +83,14 @@ parser =
         ]
 
 
-initialModel : Nav.Key -> Model
-initialModel key =
+initialModel : ( Nav.Key, Flags ) -> Model
+initialModel ( key, flags ) =
     { page = Homepage Home.initialModel
     , showDropDown = False
     , key = key
-    , pageTitle = homepageTitle
+    , pageTitle = getFullName flags
+    , blogInfo = flags
     }
-
-
-homepageTitle : String
-homepageTitle =
-    "Taco Tandem - A Blog to Share the Love of Tacos!"
 
 
 
@@ -136,6 +117,7 @@ type alias Model =
     , showDropDown : Bool
     , key : Nav.Key
     , pageTitle : String
+    , blogInfo : Flags
     }
 
 
@@ -200,20 +182,21 @@ update msg model =
 
 toHomepageModel : Model -> ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
 toHomepageModel model ( latestPosts, cmd ) =
-    ( { model | page = Homepage latestPosts, pageTitle = homepageTitle }
+    ( { model | page = Homepage latestPosts, pageTitle = getFullName model.blogInfo }
     , Cmd.map GotHomepageMsg cmd
     )
 
 
 toCategoryPageModel : Model -> ( CatPage.Model, Cmd CatPage.Msg ) -> ( Model, Cmd Msg )
 toCategoryPageModel model ( categoryPageModel, cmd ) =
-    let
-        newTitle =
-            String.Extra.toTitleCase categoryPageModel.categoryId ++ " - Taco Tandem"
-    in
-    ( { model | page = CategoryPage categoryPageModel, pageTitle = newTitle }
-    , Cmd.map GotCategoryPageMsg cmd
-    )
+    categoryPageModel.categoryId
+        |> String.Extra.toTitleCase
+        |> getPageTitle model.blogInfo
+        |> (\title ->
+                ( { model | page = CategoryPage categoryPageModel, pageTitle = title }
+                , Cmd.map GotCategoryPageMsg cmd
+                )
+           )
 
 
 toSinglePostModel : Model -> ( SinglePostPage.Model, Cmd SinglePostPage.Msg ) -> ( Model, Cmd Msg )
@@ -248,33 +231,34 @@ toSinglePostModel model ( singleModel, cmd ) =
 
 view : Model -> Document Msg
 view model =
-    let
-        currentPage =
-            case model.page of
-                Homepage homepageModel ->
-                    Home.view homepageModel
-                        |> Html.map GotHomepageMsg
-
-                PostPage singlePostModel ->
-                    SinglePostPage.view singlePostModel
-                        |> Html.map GotSinglePostPageMsg
-
-                CategoryPage categoryPageModel ->
-                    CatPage.view categoryPageModel
-                        |> Html.map GotCategoryPageMsg
-
-                _ ->
-                    viewNotFound
-    in
     { title = model.pageTitle
     , body =
         [ div [ class "wrapper" ]
             [ Icon.css
             , viewHeader model.showDropDown
-            , currentPage
+            , viewPages model
             ]
         ]
     }
+
+
+viewPages : Model -> Html Msg
+viewPages model =
+    case model.page of
+        Homepage homepageModel ->
+            Home.view homepageModel
+                |> Html.map GotHomepageMsg
+
+        PostPage singlePostModel ->
+            SinglePostPage.view singlePostModel
+                |> Html.map GotSinglePostPageMsg
+
+        CategoryPage categoryPageModel ->
+            CatPage.view categoryPageModel
+                |> Html.map GotCategoryPageMsg
+
+        _ ->
+            viewNotFound
 
 
 viewHeader : Bool -> Html Msg
