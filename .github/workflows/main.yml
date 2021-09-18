@@ -32,15 +32,15 @@ jobs:
         with:
           name: build
           path: |
-            build
+            /build
 
 
   web-deploy:
-    name: 🍊 Deploy
+    name: 🚀 Deploy
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - name: 📭 Download node_modules
+      - name: 📭 Download build
         uses: actions/download-artifact@v2
         with:
           name: build
