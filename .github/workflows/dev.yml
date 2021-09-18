@@ -33,3 +33,21 @@ jobs:
         with:
           name: build
           path: build
+
+  pwa:
+    name: 📱 Deploy PWA
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📭 Download build
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: build
+
+      - name: 🚚 FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: ${{ secrets.PWA_HOSTNAME }}
+          username: ${{ secrets.PWA_USERNAME }}
+          password: ${{ secrets.PWA_PASSWORD }}
+          local-dir: build/
