@@ -94,7 +94,7 @@ initialModel =
 
 
 graphqlEndpoint =
-    "/wordpress/graphql"
+    "https://tacotandem.com/wordpress/graphql"
 
 
 

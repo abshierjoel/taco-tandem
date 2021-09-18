@@ -71,7 +71,7 @@ subscriptions model =
 
 
 graphqlEndpoint =
-    "/wordpress/graphql"
+    "https://tacotandem.com/wordpress/graphql"
 
 
 
