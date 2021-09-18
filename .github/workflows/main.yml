@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - auto-deploy
 jobs:
   web-deploy:
     name: 🍊 Deploy
@@ -22,5 +21,4 @@ jobs:
         server: ${{ secrets.FTP_HOSTNAME }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        dry-run: true
         local-dir: ./build/
