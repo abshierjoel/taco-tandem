@@ -5,8 +5,8 @@ on:
       - master
       - multi-job-deploy
 jobs:
-  build-npm:
-    name: 🗳 Install node Modules
+  build:
+    name: 🏗 Build Website
     runs-on: ubuntu-latest
     steps:
       - name: 👨‍💻 Get the latest code
@@ -23,27 +23,6 @@ jobs:
 
       - name: 📦 Installing project dependencies
         run: npm install
-
-      - name: ⬆ Upload node_modules
-        uses: actions/upload-artifact@v2
-        with:
-          name: node-modules
-          path: |
-            node_modules
-
-
-  build-site:
-    name: 🏗 Build Website
-    needs: [build-npm]
-    runs-on: ubuntu-latest
-    steps:
-      - name: 👨‍💻 Get the latest code
-        uses: actions/checkout@v2.3.2
-
-      - name: ⬇ Download node_modules
-        uses: actions/download-artifact@v2
-        with:
-          name: node_modules
 
       - name: 🛠 Building the project
         run: npm run build
