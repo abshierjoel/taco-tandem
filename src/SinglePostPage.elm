@@ -1,6 +1,7 @@
 port module SinglePostPage exposing (..)
 
 import Accessibility as Html exposing (Html, button, div, h1, h3, img, inputText, label, p, span, text, textarea)
+import BlogConfig exposing (BlogInfo)
 import Browser
 import FontAwesome.Icon as Icon
 import FontAwesome.Regular as IconReg
@@ -55,7 +56,7 @@ import Time exposing (Month(..))
 port sendNewOpenGraph : Maybe Post -> Cmd msg
 
 
-main : Program Flags Model Msg
+main : Program ( BlogInfo, String ) Model Msg
 main =
     Browser.element
         { init = init
@@ -69,27 +70,20 @@ main =
 ---- INIT ----
 
 
-init : Flags -> ( Model, Cmd Msg )
-init flags =
-    ( { initialModel | slug = flags.slug, gqlUrl = flags.gqlUrl }, getPost flags )
+init : ( BlogInfo, String ) -> ( Model, Cmd Msg )
+init ( blogInfo, slug ) =
+    ( initialModel blogInfo slug, getPost blogInfo.gqlUrl slug )
 
 
-initialModel : Model
-initialModel =
-    { slug = "i-really-love-tacos"
+initialModel : BlogInfo -> String -> Model
+initialModel blogInfo slug =
+    { slug = slug
     , post = RemoteData.Loading
     , newComment = RemoteData.NotAsked
     , commentName = ""
     , commentEmail = ""
     , commentContent = ""
-    , gqlUrl = "/wordpress/graphql"
-    }
-
-
-makeFlags : String -> String -> Flags
-makeFlags slug gqlUrl =
-    { slug = slug
-    , gqlUrl = gqlUrl
+    , blogInfo = blogInfo
     }
 
 
@@ -104,7 +98,7 @@ type alias Model =
     , commentName : String
     , commentEmail : String
     , commentContent : String
-    , gqlUrl : String
+    , blogInfo : BlogInfo
     }
 
 
@@ -120,10 +114,6 @@ type alias Post =
     , comments : Maybe (List Comment)
     , databaseId : Int
     }
-
-
-type alias Flags =
-    { slug : String, gqlUrl : String }
 
 
 type alias User =
@@ -203,7 +193,7 @@ update msg model =
                     case maybePost of
                         Just thePost ->
                             ( model
-                            , addComment model.gqlUrl
+                            , addComment model.blogInfo.gqlUrl
                                 thePost.databaseId
                                 ( model.commentName
                                 , model.commentEmail
@@ -259,10 +249,10 @@ addCommentSelection =
         (CreateCommentPayload.comment commentSelection)
 
 
-getPost : Flags -> Cmd Msg
-getPost flags =
-    postQuery flags.slug
-        |> Graphql.Http.queryRequest flags.gqlUrl
+getPost : String -> String -> Cmd Msg
+getPost gqlUrl slug =
+    postQuery slug
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 

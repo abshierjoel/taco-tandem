@@ -1,6 +1,7 @@
 module Homepage exposing (..)
 
 import Accessibility as Html exposing (Html, button, div, h1, span, text)
+import BlogConfig exposing (BlogInfo)
 import Browser
 import FontAwesome.Brands as Icon
 import FontAwesome.Icon as Icon
@@ -36,7 +37,7 @@ import Time exposing (Month(..))
 ---- PROGRAM ----
 
 
-main : Program String Model Msg
+main : Program BlogInfo Model Msg
 main =
     Browser.element
         { init = init
@@ -50,18 +51,19 @@ main =
 ---- INIT ----
 
 
-init : String -> ( Model, Cmd Msg )
-init flags =
-    ( { initialModel | gqlUrl = flags }, getPosts flags "" )
+init : BlogInfo -> ( Model, Cmd Msg )
+init blogInfo =
+    ( initialModel blogInfo, getPosts blogInfo.gqlUrl "" )
 
 
-initialModel =
+initialModel : BlogInfo -> Model
+initialModel blogInfo =
     { postsResponse = RemoteData.Loading
     , morePostsResponse = RemoteData.NotAsked
     , posts = []
     , lastCursor = ""
     , hasNextPage = False
-    , gqlUrl = ""
+    , blogInfo = blogInfo
     }
 
 
@@ -80,7 +82,7 @@ type alias Model =
     , posts : List Post
     , lastCursor : String
     , hasNextPage : Bool
-    , gqlUrl : String
+    , blogInfo : BlogInfo
     }
 
 
@@ -212,7 +214,7 @@ update msg model =
                     ( model, Cmd.none )
 
         ClickedLoadMore ->
-            ( { model | morePostsResponse = RemoteData.Loading }, getMorePosts model.gqlUrl model.lastCursor )
+            ( { model | morePostsResponse = RemoteData.Loading }, getMorePosts model.blogInfo.gqlUrl model.lastCursor )
 
 
 

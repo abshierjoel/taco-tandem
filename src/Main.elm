@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import BlogConfig exposing (Flags, getFullName, getPageTitle)
+import BlogConfig exposing (BlogInfo, getFullName, getPageTitle)
 import Browser exposing (Document, element)
 import Browser.Dom exposing (Error(..))
 import Browser.Navigation as Nav
@@ -26,7 +26,7 @@ import Url.Parser as Parser exposing ((</>), Parser, s)
 ---- PROGRAM ----
 
 
-main : Program Flags Model Msg
+main : Program BlogInfo Model Msg
 main =
     Browser.application
         { init = init
@@ -38,7 +38,7 @@ main =
         }
 
 
-init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init : BlogInfo -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url key =
     updateUrl url (initialModel ( key, flags ))
 
@@ -58,16 +58,16 @@ updateUrl : Url -> Model -> ( Model, Cmd Msg )
 updateUrl url model =
     case Parser.parse parser url of
         Just HomeRoute ->
-            toHomepageModel { model | page = Homepage Home.initialModel } (Home.init model.blogInfo.gqlUrl)
+            toHomepageModel { model | page = Homepage (Home.initialModel model.blogInfo) } (Home.init model.blogInfo)
 
         Just (CategoryRoute categoryName) ->
-            toCategoryPageModel { model | page = CategoryPage CatPage.initialModel } (CatPage.init <| CatPage.makeFlags model.blogInfo.gqlUrl categoryName)
+            toCategoryPageModel { model | page = CategoryPage (CatPage.initialModel model.blogInfo categoryName) } (CatPage.init ( model.blogInfo, categoryName ))
 
         Just (PostRoute slug) ->
-            toSinglePostModel { model | page = PostPage SinglePostPage.initialModel } (SinglePostPage.init <| SinglePostPage.makeFlags slug model.blogInfo.gqlUrl)
+            toSinglePostModel { model | page = PostPage (SinglePostPage.initialModel model.blogInfo slug) } (SinglePostPage.init ( model.blogInfo, slug ))
 
         Just (PageRoute _) ->
-            ( { model | page = Homepage Home.initialModel }, Cmd.none )
+            ( { model | page = Homepage (Home.initialModel model.blogInfo) }, Cmd.none )
 
         Nothing ->
             ( { model | page = NotFoundPage }, Cmd.none )
@@ -83,13 +83,13 @@ parser =
         ]
 
 
-initialModel : ( Nav.Key, Flags ) -> Model
-initialModel ( key, flags ) =
-    { page = Homepage Home.initialModel
+initialModel : ( Nav.Key, BlogInfo ) -> Model
+initialModel ( key, blogInfo ) =
+    { page = Homepage (Home.initialModel blogInfo)
     , showDropDown = False
     , key = key
-    , pageTitle = getFullName flags
-    , blogInfo = flags
+    , pageTitle = getFullName blogInfo
+    , blogInfo = blogInfo
     }
 
 
@@ -117,7 +117,7 @@ type alias Model =
     , showDropDown : Bool
     , key : Nav.Key
     , pageTitle : String
-    , blogInfo : Flags
+    , blogInfo : BlogInfo
     }
 
 

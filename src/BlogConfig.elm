@@ -1,23 +1,23 @@
 module BlogConfig exposing (..)
 
 
-type alias Flags =
+type alias BlogInfo =
     { gqlUrl : String
     , title : String
     , description : String
     }
 
 
-getTitle : Flags -> String
+getTitle : BlogInfo -> String
 getTitle flags =
     flags.title
 
 
-getFullName : Flags -> String
+getFullName : BlogInfo -> String
 getFullName flags =
     flags.title ++ " - " ++ flags.description
 
 
-getPageTitle : Flags -> String -> String
+getPageTitle : BlogInfo -> String -> String
 getPageTitle flags title =
     title ++ " - " ++ flags.title
