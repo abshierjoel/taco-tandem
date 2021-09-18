@@ -74,13 +74,6 @@ init flags =
     ( { initialModel | slug = flags.slug, gqlUrl = flags.gqlUrl }, getPost flags )
 
 
-makeFlags : String -> String -> Flags
-makeFlags slug gqlUrl =
-    { slug = slug
-    , gqlUrl = gqlUrl
-    }
-
-
 initialModel : Model
 initialModel =
     { slug = "i-really-love-tacos"
@@ -90,6 +83,13 @@ initialModel =
     , commentEmail = ""
     , commentContent = ""
     , gqlUrl = "/wordpress/graphql"
+    }
+
+
+makeFlags : String -> String -> Flags
+makeFlags slug gqlUrl =
+    { slug = slug
+    , gqlUrl = gqlUrl
     }
 
 

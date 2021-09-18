@@ -37,7 +37,7 @@ import Time exposing (Month(..))
 ---- PROGRAM ----
 
 
-main : Program String Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
@@ -51,9 +51,9 @@ main =
 ---- INIT ----
 
 
-init : String -> ( Model, Cmd Msg )
+init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( { initialModel | categoryId = flags }, getPostsInCategory "" flags )
+    ( { initialModel | categoryId = flags.id, gqlUrl = flags.gqlUrl }, getPostsInCategory flags.gqlUrl "" flags.id )
 
 
 initialModel : Model
@@ -64,20 +64,24 @@ initialModel =
     , lastCursor = ""
     , hasNextPage = False
     , categoryId = ""
+    , gqlUrl = ""
+    }
+
+
+makeFlags : String -> String -> Flags
+makeFlags id gqlUrl =
+    { id = id
+    , gqlUrl = gqlUrl
     }
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
-graphqlEndpoint =
-    "/wordpress/graphql"
 
-
-
----- MODEL ---- 
+---- MODEL ----
 
 
 type alias Model =
@@ -87,7 +91,12 @@ type alias Model =
     , lastCursor : String
     , hasNextPage : Bool
     , categoryId : String
+    , gqlUrl : String
     }
+
+
+type alias Flags =
+    { id : String, gqlUrl : String }
 
 
 type alias TestResponse =
@@ -218,24 +227,24 @@ update msg model =
                     ( model, Cmd.none )
 
         ClickedLoadMore ->
-            ( { model | morePostsResponse = RemoteData.Loading }, getMorePostsById model.lastCursor model.categoryId )
+            ( { model | morePostsResponse = RemoteData.Loading }, getMorePostsById model.gqlUrl model.lastCursor model.categoryId )
 
 
 
 ---- QUERY ----
 
 
-getPostsInCategory : String -> String -> Cmd Msg
-getPostsInCategory cursor categoryId =
+getPostsInCategory : String -> String -> String -> Cmd Msg
+getPostsInCategory gqlUrl cursor categoryId =
     postsQuery cursor categoryId
-        |> Graphql.Http.queryRequest graphqlEndpoint
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotResponse)
 
 
-getMorePostsById : String -> String -> Cmd Msg
-getMorePostsById cursor categoryId =
+getMorePostsById : String -> String -> String -> Cmd Msg
+getMorePostsById gqlUrl cursor categoryId =
     postsQuery cursor categoryId
-        |> Graphql.Http.queryRequest graphqlEndpoint
+        |> Graphql.Http.queryRequest gqlUrl
         |> Graphql.Http.send (RemoteData.fromResult >> GotMorePostsResponse)
 
 

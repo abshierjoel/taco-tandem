@@ -61,7 +61,7 @@ updateUrl url model =
             toHomepageModel { model | page = Homepage Home.initialModel } (Home.init model.blogInfo.gqlUrl)
 
         Just (CategoryRoute categoryName) ->
-            toCategoryPageModel { model | page = CategoryPage CatPage.initialModel } (CatPage.init categoryName)
+            toCategoryPageModel { model | page = CategoryPage CatPage.initialModel } (CatPage.init <| CatPage.makeFlags model.blogInfo.gqlUrl categoryName)
 
         Just (PostRoute slug) ->
             toSinglePostModel { model | page = PostPage SinglePostPage.initialModel } (SinglePostPage.init <| SinglePostPage.makeFlags slug model.blogInfo.gqlUrl)
