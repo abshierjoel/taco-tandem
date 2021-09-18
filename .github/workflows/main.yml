@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - master
-      - multi-job-deploy
 jobs:
   build:
     name: 🏗 Build Website
