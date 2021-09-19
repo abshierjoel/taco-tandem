@@ -85,7 +85,7 @@
       name="viewport"
       content="width=device-width,initial-scale=1,shrink-to-fit=no"
     />
-    <meta name="theme-color" content="#aecf80" />
+    <meta name="theme-color" content="#322885" />
 
     <title>Taco Tandem - A blog to share the love of tacos!</title>
     
