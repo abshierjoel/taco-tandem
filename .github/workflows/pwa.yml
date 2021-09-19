@@ -1,16 +1,8 @@
 name: Deploy PWA
 on: 
-  workflow_dispatch:
-    branches: '*'
-    inputs:
-      name:
-        description: 'Person to greet'
-        required: true
-        default: 'Mona the Octocat'
-      home:
-        description: 'location'
-        required: false
-        default: 'The Octoverse'
+  push:
+    branches: 
+      - '*'
 jobs:
   build-pwa:
     name: 🏗 Build Website
