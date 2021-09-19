@@ -3,7 +3,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-
+    
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+    
     <?php 
 
         $url = $_SERVER['REQUEST_URI'];
@@ -74,7 +77,36 @@
             <?php
         }
 
-        readfile("main.html");
-
     ?>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <meta name="theme-color" content="#322885" />
+
+    <title>Taco Tandem - A blog to share the love of tacos!</title>
     
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-3DCD3DDXHV"
+    ></script>
+
+    <script>
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      (window.dataLayer = window.dataLayer || []),
+        gtag('js', new Date()),
+        gtag('config', 'G-3DCD3DDXHV');
+    </script>
+  </head>
+
+  <body>
+    <noscript>You need to enable JavaScript to visit Taco Tandem.</noscript>
+    <div id="root"></div>
+  </body>
+
+</html>

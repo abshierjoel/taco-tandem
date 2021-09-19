@@ -27,9 +27,3 @@ jobs:
 
       - name: 🛠 Building the project
         run: npm run build
-
-      - name: 📫 Upload Complete Project
-        uses: actions/upload-artifact@v2
-        with:
-          name: build
-          path: build

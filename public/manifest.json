@@ -1,15 +1,20 @@
 {
-  "short_name": "Elm App",
-  "name": "Create Elm App Sample",
+  "short_name": "Taco Tandem",
+  "name": "Taco Tandem",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "192x192",
       "type": "image/png"
+    },
+    {
+      "src": "taco.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ],
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#322885",
+  "background_color": "#322885"
 }
