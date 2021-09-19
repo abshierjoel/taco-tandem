@@ -4,6 +4,8 @@
 <html lang="en">
   <head>
 
+    <link rel="manifest" href="/manifest.json">
+
     <?php 
 
         $url = $_SERVER['REQUEST_URI'];
