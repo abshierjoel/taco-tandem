@@ -1,6 +1,3 @@
-# Distribution
-build/
-
 # elm-package generated files
 elm-stuff
 
@@ -9,13 +6,3 @@ repl-temp-*
 
 # Dependency directories
 node_modules
-
-# Desktop Services Store on macOS
-.DS_Store
-
-# Environment Variables 
-.env
-
-# Git Stuff
-.git
-.github

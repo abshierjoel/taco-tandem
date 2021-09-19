@@ -1,14 +1,17 @@
-FROM node:lts-alpine AS build
+FROM node:lts-buster AS builderbot
 
-COPY . .
-
+COPY package.json .
+COPY package-lock.json .
+COPY elm.json .
 RUN npm install
 
-RUN npm run build
-
+COPY . .
+CMD ["npm", "run", "build"]
 
 ## Devserver
 
-FROM php:8.1-rc-apache-buster
+FROM php:7.2-apache
+COPY --from=builderbot build/ /var/www/html/
 
-COPY --from=build /build/ /var/www/html/
+EXPOSE 80
+EXPOSE 443
