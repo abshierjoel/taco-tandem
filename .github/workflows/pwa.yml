@@ -8,7 +8,7 @@ jobs:
     name: 🏗 Build Website
     runs-on: ubuntu-latest
     env:
-      ELM_APP_GRAPHQL_URL: /wordpress/graphql
+      ELM_APP_GRAPHQL_URL: https://tacotandem.com/wordpress/graphql
     steps:
       - name: 👨‍💻 Get the latest code
         uses: actions/checkout@v2.3.2
