@@ -201,28 +201,26 @@ toCategoryPageModel model ( categoryPageModel, cmd ) =
 
 toSinglePostModel : Model -> ( SinglePostPage.Model, Cmd SinglePostPage.Msg ) -> ( Model, Cmd Msg )
 toSinglePostModel model ( singleModel, cmd ) =
-    let
-        newTitle =
-            case singleModel.post of
-                RemoteData.Success data ->
-                    case data of
-                        Just post ->
-                            case post.title of
-                                Just res ->
-                                    res ++ " - Taco Tandem"
+    ( { model | page = PostPage singleModel, pageTitle = getPostTitle model singleModel }
+    , Cmd.map GotSinglePostPageMsg cmd
+    )
 
-                                _ ->
-                                    model.pageTitle
 
-                        _ ->
-                            model.pageTitle
+getPostTitle : Model -> SinglePostPage.Model -> String
+getPostTitle model singlePostModel =
+    case singlePostModel.post of
+        RemoteData.Success data ->
+            case data of
+                Just post ->
+                    post.title
+                        |> Maybe.withDefault model.pageTitle
+                        |> String.append " - Taco Tandem"
 
                 _ ->
                     model.pageTitle
-    in
-    ( { model | page = PostPage singleModel, pageTitle = newTitle }
-    , Cmd.map GotSinglePostPageMsg cmd
-    )
+
+        _ ->
+            model.pageTitle
 
 
 
