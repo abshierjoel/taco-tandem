@@ -234,6 +234,7 @@ module.exports = {
           /\.sass$/,
           /\.json$/,
           /\.svg$/,
+          /\.php$/,
         ],
         loader: require.resolve("url-loader"),
         options: {
@@ -246,7 +247,6 @@ module.exports = {
       {
         test: /\.svg$/,
         loader: require.resolve("file-loader"),
-        exclude: [/\.(php)$/],
         options: {
           name: "static/media/[name].[hash:8].[ext]",
         },
