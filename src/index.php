@@ -76,7 +76,39 @@
             <?php
         }
 
-        readfile("main.html");
-
     ?>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,shrink-to-fit=no"
+    />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+    <title>Taco Tandem - A blog to share the love of tacos!</title>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-3DCD3DDXHV"
+    ></script>
+    <script>
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      (window.dataLayer = window.dataLayer || []),
+        gtag('js', new Date()),
+        gtag('config', 'G-3DCD3DDXHV');
+    </script>
+    <link href="/static/css/vendors~main.276ef6a7.chunk.css" rel="stylesheet" />
+    <link href="/static/css/main.8fe59ba6.chunk.css" rel="stylesheet" />
     
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to visit Taco Tandem.</noscript>
+    <div id="root"></div>
+    <script src="/static/js/runtime~main.1b922744.js"></script>
+    <script src="/static/js/vendors~main.ffb49ccd.chunk.js"></script>
+    <script src="/static/js/main.5ecac340.chunk.js"></script>
+  </body>
+</html>
