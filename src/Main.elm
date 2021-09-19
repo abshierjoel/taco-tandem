@@ -11,7 +11,7 @@ import FontAwesome.Solid as Icon
 import FontAwesome.Styles as Icon
 import Graphql.OptionalArgument exposing (OptionalArgument(..))
 import Homepage as Home
-import Html exposing (Html, a, button, div, h1, img, p, span, text)
+import Html exposing (Attribute, Html, a, button, div, h1, header, img, node, p, span, text)
 import Html.Attributes exposing (class, href, src)
 import Html.Events exposing (onClick)
 import Json.Decode exposing (Error(..))
@@ -231,9 +231,10 @@ view : Model -> Document Msg
 view model =
     { title = model.pageTitle
     , body =
-        [ div [ class "wrapper" ]
-            [ Icon.css
-            , viewHeader model.showDropDown
+        [ Icon.css
+        , div [ class "wrapper" ]
+            [ viewHeader
+            , viewNavigation model.showDropDown
             , viewPages model
             ]
         ]
@@ -242,25 +243,45 @@ view model =
 
 viewPages : Model -> Html Msg
 viewPages model =
-    case model.page of
-        Homepage homepageModel ->
-            Home.view homepageModel
-                |> Html.map GotHomepageMsg
+    node "content"
+        [ class "content" ]
+        [ case model.page of
+            Homepage homepageModel ->
+                Home.view homepageModel
+                    |> Html.map GotHomepageMsg
 
-        PostPage singlePostModel ->
-            SinglePostPage.view singlePostModel
-                |> Html.map GotSinglePostPageMsg
+            PostPage singlePostModel ->
+                SinglePostPage.view singlePostModel
+                    |> Html.map GotSinglePostPageMsg
 
-        CategoryPage categoryPageModel ->
-            CatPage.view categoryPageModel
-                |> Html.map GotCategoryPageMsg
+            CategoryPage categoryPageModel ->
+                CatPage.view categoryPageModel
+                    |> Html.map GotCategoryPageMsg
 
-        _ ->
-            viewNotFound
+            _ ->
+                viewNotFound
+        ]
 
 
-viewHeader : Bool -> Html Msg
-viewHeader showDropDown =
+viewHeader : Html msg
+viewHeader =
+    header [ class "header" ]
+        [ a [ href "/" ]
+            [ div
+                [ class "header-logo animate__animated animate__zoomIn " ]
+                [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
+                    [ img [ src "/taco.svg" ] [] ]
+                , div [ class "header-text" ]
+                    [ span [] [ text " Taco" ]
+                    , span [] [ text "Tandem" ]
+                    ]
+                ]
+            ]
+        ]
+
+
+viewNavigation : Bool -> Html Msg
+viewNavigation showDropDown =
     let
         menuItems =
             div [ class "nav-dropdown" ]
@@ -273,35 +294,27 @@ viewHeader showDropDown =
                     [ Icon.viewStyled [] Icon.times, text "Close" ]
                 ]
     in
-    div [ class "header" ]
-        [ a [ href "/" ]
-            [ div
-                [ class "header-logo animate__animated animate__zoomIn " ]
-                [ div [ class "header-icon animate__animated animate__infinite animate__pulse animate__slower" ]
-                    [ img [ src "/taco.svg" ] [] ]
-                , div [ class "header-text" ]
-                    [ span [] [ text " Taco" ]
-                    , span [] [ text "Tandem" ]
-                    ]
+    navigation [ class "navigation" ]
+        [ div [ class "mobile-header-nav header-icon animate__animated animate__backInLeft" ]
+            [ button [ class "menu-button", onClick ClickedMenuButton ]
+                [ Icon.viewStyled [] Icon.bars
+                , text " Menu"
                 ]
             ]
-        , div [ class "nav-wrapper" ]
-            [ div [ class "mobile-header-nav header-icon animate__animated animate__backInLeft" ]
-                [ button [ class "menu-button", onClick ClickedMenuButton ]
-                    [ Icon.viewStyled [] Icon.bars
-                    , text " Menu"
-                    ]
-                ]
-            , viewIf showDropDown menuItems
-            , div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
-                [ a [ href "/", class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
-                , a [ href "/c/travels/", class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
-                , a [ href "/c/recipes/", class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
+        , viewIf showDropDown menuItems
+        , div [ class "header-nav header-icon animate__animated animate__backInLeft" ]
+            [ a [ href "/", class "nav-button" ] [ Icon.viewStyled [] Icon.home, text "Home" ]
+            , a [ href "/c/travels/", class "nav-button" ] [ Icon.viewStyled [] Icon.plane, text "Travel" ]
+            , a [ href "/c/recipes/", class "nav-button" ] [ Icon.viewStyled [] Icon.utensils, text "Recipes" ]
 
-                --, a [ href "/about", class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
-                ]
+            --, a [ href "/about", class "nav-button" ] [ Icon.viewStyled [] Icon.book, text "About" ]
             ]
         ]
+
+
+navigation : List (Attribute msg) -> List (Html msg) -> Html msg
+navigation attributes children =
+    node "navigation" attributes children
 
 
 viewNotFound : Html msg

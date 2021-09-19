@@ -87,49 +87,62 @@ a:focus {
 
 .wrapper {
   width: 100%;
-  margin: 0 auto;
+  min-width: 360px;
+  display: grid;
+  grid-template-columns: 50px 50px 50px 50px;
+  grid-template-rows: auto;  
+  grid-template:
+    "header header header"
+    "navigation navigation navigation"
+    ". content .";
 }
 
-.header {
+.header, header {
+  grid-area: header;
   background: #aecf80;
-  position: relative;
   z-index: 1000;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 960px) {
+  .wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
   .header {
     background: transparent;
   }
 }
 
-.header-logo {
-  max-width: 60%;
-  margin: 0 auto;
-  padding: 2vh 0;
-  display: flex;
+.navigation {
+  grid-area: navigation;
 }
 
-@media screen and (max-width: 768px) {
-  .header-logo {
-    max-width: 90%;
-  }
+.content {
+  grid-area: content;
+}
+
+.header-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .header-icon {
-  flex: 33%;
+  max-width: 30%;
+  position: relative;
 }
 
 .header-icon img {
-  width: 100%;
+  width: 90%;
+  max-height: 280px;
 }
 
 .header-text {
-  flex: 67%;
-  padding-top: 2rem;
-
   text-align: left;
-  font-size: 10vw;
-  line-height: 8vw;
+  font-size: 8rem;
+  line-height: 6rem;
   color: #fff;
   text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.07);
 
@@ -137,11 +150,19 @@ a:focus {
     'Bitstream Vera Sans', 'Helvetica Neue', sans-serif;
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1100px) {
   .header-text {
     padding-top: unset;
-    font-size: 14vw;
-    line-height: 14vw;
+    font-size: 5rem;
+    line-height: 4rem;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .header-text {
+    padding-top: unset;
+    font-size: 3rem;
+    line-height: 2rem;
   }
 }
 
@@ -149,7 +170,7 @@ a:focus {
   display: block;
 }
 
-.nav-wrapper {
+.navigation {
   background: #e0485d;
 }
 
@@ -177,14 +198,16 @@ a:focus {
 .nav-button,
 .menu-button {
   flex-grow: 1;
-  line-height: 5vh;
-  font-size: 2vh;
+  line-height: 4rem;
+  font-size: 1.4rem;
   text-decoration: none;
   border: unset;
   border-width: 0;
   background: transparent;
   color: #fff;
   cursor: pointer;
+
+  box-shadow: unset;
 }
 
 a.nav-button:hover,
@@ -238,9 +261,9 @@ a.nav-button:link {
   position: relative;
 
   margin: 3vh auto;
-  padding: 6vh 6vw;
+  padding: 60px;
 
-  border-radius: 3vw;
+  border-radius: 2vw;
   background: #fff;
   -webkit-box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
   box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
@@ -248,7 +271,15 @@ a.nav-button:link {
   text-align: left;
 }
 
-@media screen and (max-width: 768px) {
+
+@media screen and (max-width: 1200px) {
+  .page {
+    max-width: 85%;
+  }
+}
+
+
+@media screen and (max-width: 960px) {
   .page {
     max-width: 100%;
     margin-top: unset;
@@ -270,10 +301,9 @@ a.nav-button:link {
 }
 
 .post-title {
-  font-size: 4vh;
-  line-height: 5vh;
+  font-size: 3rem;
   margin: unset;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
 }
 
 a > .post-title:hover,
