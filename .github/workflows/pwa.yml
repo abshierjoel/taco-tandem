@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - pwa
+      - whale-of-a-tale
 jobs:
   build-pwa:
     name: 🏗 Build Website
