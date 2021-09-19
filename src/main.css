@@ -251,6 +251,7 @@ a.nav-button:link {
   position: absolute;
   width: 100%;
   background: #af3646;
+  z-index: 100000;
 }
 
 .page {
