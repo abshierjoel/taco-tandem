@@ -105,8 +105,6 @@
     
   </head>
   <body>
-      <h1>This is a test</h1>
-
     <noscript>You need to enable JavaScript to visit Taco Tandem.</noscript>
     <!-- <div id="root"></div> -->
     <script src="/static/js/runtime~main.1b922744.js"></script>
