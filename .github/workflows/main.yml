@@ -1,4 +1,4 @@
-name: 🚀 Deploy Site on push 
+name: 🚀 Deploy Site on push
 on:
   push:
     branches:
@@ -15,7 +15,7 @@ jobs:
 
       - name: 🟢 Setup NodeJS
         uses: actions/setup-node@master
-        
+
       - name: 🔒 Cache Node Modules
         uses: actions/cache@v2
         with:
@@ -29,11 +29,10 @@ jobs:
         run: npm run build
 
       - name: 📫 Upload Complete Project
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: build
-          path: build
-
+          name: dist
+          path: dist
 
   web-deploy:
     name: 🚀 Deploy
@@ -41,10 +40,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 📭 Download build
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
-          name: build
-          path: build
+          name: dist
+          path: dist
 
       - name: 🚚 FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
@@ -52,4 +51,4 @@ jobs:
           server: ${{ secrets.FTP_HOSTNAME }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: build/
+          local-dir: dist/
